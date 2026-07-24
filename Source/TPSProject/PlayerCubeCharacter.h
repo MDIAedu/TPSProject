@@ -45,8 +45,34 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> LookAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> AimAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> FireAction;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	int32 MovementMappingPriority = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float FireTraceDistance = 3000.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float FireDebugDrawTime = 5.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Aim Camera")
+	float DefaultCameraArmLength = 450.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Aim Camera")
+	float AimingCameraArmLength = 250.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Aim Camera")
+	float DefaultCameraFov = 90.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Aim Camera")
+	float AimingCameraFov = 65.0f;
+
+	bool bIsAiming = false;
 
 	// 현재 소유 플레이어에 이동 입력 매핑 컨텍스트를 등록한다.
 	void RegisterMovementMappingContext() const;
@@ -56,4 +82,13 @@ private:
 
 	// 마우스 입력으로 받은 2D 값을 카메라 회전 입력으로 바꾼다.
 	void Look(const FInputActionValue& Value);
+
+	// 조준 입력이 눌렸을 때 사격 가능한 조준 상태로 바꾼다.
+	void StartAim();
+
+	// 조준 입력이 끝났을 때 조준 상태를 해제한다.
+	void StopAim();
+
+	// 발사 입력이 들어오면 카메라 정면으로 명중 판정을 확인한다.
+	void Fire();
 };

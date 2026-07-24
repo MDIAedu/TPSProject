@@ -12,6 +12,7 @@
 | 01-2 | [Tasks/01-2_player_cube_movement.md](../Tasks/01-2_player_cube_movement.md) | WASD 입력으로 플레이어 큐브 이동 검증 | 완료 |
 | 01-3 | [Tasks/01-3_player_character_base.md](../Tasks/01-3_player_character_base.md) | 플레이어 조작 대상을 Character 기반 구조로 전환 | 완료 |
 | 01-4 | [Tasks/01-4_third_person_shoulder_camera.md](../Tasks/01-4_third_person_shoulder_camera.md) | 마우스 조작 3인칭 숄더뷰 카메라와 카메라 기준 이동 구성 | 완료 |
+| 01-5 | [Tasks/01-5_basic_aim_and_fire.md](../Tasks/01-5_basic_aim_and_fire.md) | 마우스 우클릭 조준과 좌클릭 기본 사격 명중 판정 검증 | 완료 |
 
 ## 상태 범례
 
@@ -30,3 +31,8 @@
 - 2026-07-24: 01-3 사용자 결과 확인 완료, task 상태 완료 처리.
 - 2026-07-24: 01-4 `APlayerCubeCharacter`에 숄더뷰 카메라와 마우스 Look 입력, 카메라 기준 이동 코드 추가, 사용자 결과 확인 대기.
 - 2026-07-24: 01-4 사용자 결과 확인 완료, task 상태 완료 처리.
+- 2026-07-24: 사용자 요청에 따라 01-5 기본 조준과 사격 명중 판정 검증 task 문서 작성.
+- 2026-07-24: 01-5 `APlayerCubeCharacter`에 조준 상태와 카메라 정면 라인 트레이스 사격 판정 추가, 사용자 수동 연결과 결과 확인 대기.
+- 2026-07-24: 01-5 사용자 확인 중 사격 디버그 표시와 `Fire hit` 로그가 나오지 않아 입력/조준 상태 진단 로그와 디버그 표시 시간을 보강.
+- 2026-07-24: 01-5 사용자 요청에 따라 좌클릭은 항상 사격하고, 우클릭은 확대 조준 카메라 상태로만 동작하도록 변경.
+- 2026-07-24: 01-5 사용자 결과 확인 완료, task 상태 완료 처리.
