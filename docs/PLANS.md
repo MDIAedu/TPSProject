@@ -10,6 +10,8 @@
 | --- | --- | --- | --- |
 | 01-1 | [Tasks/01-1_basic_play_map.md](../Tasks/01-1_basic_play_map.md) | 동작 검증용 기본 플레이 맵 구성 | 완료 |
 | 01-2 | [Tasks/01-2_player_cube_movement.md](../Tasks/01-2_player_cube_movement.md) | WASD 입력으로 플레이어 큐브 이동 검증 | 완료 |
+| 01-3 | [Tasks/01-3_player_character_base.md](../Tasks/01-3_player_character_base.md) | 플레이어 조작 대상을 Character 기반 구조로 전환 | 완료 |
+| 01-4 | [Tasks/01-4_third_person_shoulder_camera.md](../Tasks/01-4_third_person_shoulder_camera.md) | 마우스 조작 3인칭 숄더뷰 카메라와 카메라 기준 이동 구성 | 완료 |
 
 ## 상태 범례
 
@@ -24,3 +26,7 @@
 - 2026-07-23: 보스 시작 후보 위치와 보스 확인용 임시 형상 배치는 보스 제작 단계에서 진행하기로 범위 조정, 01-1 완료 처리.
 - 2026-07-23: 01-2 Enhanced Input 기반 `APlayerCubePawn` C++ 코드 추가, IA/IMC/Blueprint 에디터 연결과 사용자 결과 확인 대기.
 - 2026-07-23: 01-2 사용자 결과 확인 완료, task 상태 완료 처리.
+- 2026-07-24: 01-3 `APlayerCubeCharacter` C++ 코드 추가, 기존 `APlayerCubePawn` C++ 코드 삭제, Character 기반 Blueprint 생성과 사용자 결과 확인 대기.
+- 2026-07-24: 01-3 사용자 결과 확인 완료, task 상태 완료 처리.
+- 2026-07-24: 01-4 `APlayerCubeCharacter`에 숄더뷰 카메라와 마우스 Look 입력, 카메라 기준 이동 코드 추가, 사용자 결과 확인 대기.
+- 2026-07-24: 01-4 사용자 결과 확인 완료, task 상태 완료 처리.

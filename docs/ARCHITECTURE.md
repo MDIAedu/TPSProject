@@ -23,7 +23,7 @@
 - `Content/Maps/`: 플레이 가능한 레벨 자산
   - `L_BattleMap.umap`: 동작 검증용 기본 플레이 맵
 - `Source/TPSProject/`: 게임 모듈 C++ 코드
-  - `PlayerCubePawn.h`, `PlayerCubePawn.cpp`: WASD 이동 검증용 플레이어 큐브 Pawn
+  - `PlayerCubeCharacter.h`, `PlayerCubeCharacter.cpp`: WASD 이동 검증용 플레이어 큐브 Character
 
 
 ## 권장 파일 배치
