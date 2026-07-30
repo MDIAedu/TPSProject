@@ -48,6 +48,26 @@ APlayerCubeCharacter::APlayerCubeCharacter()
 	CharacterMovementComponent->bOrientRotationToMovement = true;
 }
 
+int32 APlayerCubeCharacter::GetCurrentFireComboStep() const
+{
+	return CurrentFireComboStep;
+}
+
+float APlayerCubeCharacter::GetCurrentFireComboDamage() const
+{
+	switch (CurrentFireComboStep)
+	{
+	case 1:
+		return FireComboStep1Damage;
+	case 2:
+		return FireComboStep2Damage;
+	case 3:
+		return FireComboStep3Damage;
+	default:
+		return 0.0f;
+	}
+}
+
 void APlayerCubeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -180,7 +200,17 @@ void APlayerCubeCharacter::StopAim()
 
 void APlayerCubeCharacter::Fire()
 {
-	UE_LOG(LogTemp, Log, TEXT("PlayerCubeCharacter: Fire input received. IsAiming=%s."), bIsAiming ? TEXT("true") : TEXT("false"));
+	AdvanceFireCombo();
+	const float CurrentComboDamage = GetCurrentFireComboDamage();
+
+	UE_LOG(
+		LogTemp,
+		Log,
+		TEXT("PlayerCubeCharacter: Fire input received. IsAiming=%s. ComboStep=%d. ComboDamage=%.1f."),
+		bIsAiming ? TEXT("true") : TEXT("false"),
+		CurrentFireComboStep,
+		CurrentComboDamage
+	);
 
 	if (!ShoulderCamera)
 	{
@@ -216,9 +246,47 @@ void APlayerCubeCharacter::Fire()
 	if (bHit)
 	{
 		DrawDebugPoint(World, HitResult.ImpactPoint, 12.0f, FColor::Yellow, false, FireDebugDrawTime);
-		UE_LOG(LogTemp, Log, TEXT("PlayerCubeCharacter: Fire hit %s."), *GetNameSafe(HitResult.GetActor()));
+		UE_LOG(
+			LogTemp,
+			Log,
+			TEXT("PlayerCubeCharacter: Fire hit %s. ComboStep=%d. ComboDamage=%.1f."),
+			*GetNameSafe(HitResult.GetActor()),
+			CurrentFireComboStep,
+			CurrentComboDamage
+		);
 		return;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("PlayerCubeCharacter: Fire missed."));
+	UE_LOG(
+		LogTemp,
+		Log,
+		TEXT("PlayerCubeCharacter: Fire missed. ComboStep=%d. ComboDamage=%.1f."),
+		CurrentFireComboStep,
+		CurrentComboDamage
+	);
+}
+
+void APlayerCubeCharacter::AdvanceFireCombo()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		CurrentFireComboStep = 1;
+		LastFireComboInputTime = -1000.0f;
+		return;
+	}
+
+	const float CurrentTime = World->GetTimeSeconds();
+	const bool bCanContinueCombo = (CurrentTime - LastFireComboInputTime) <= FireComboResetTime;
+
+	if (bCanContinueCombo && CurrentFireComboStep > 0 && CurrentFireComboStep < 3)
+	{
+		++CurrentFireComboStep;
+	}
+	else
+	{
+		CurrentFireComboStep = 1;
+	}
+
+	LastFireComboInputTime = CurrentTime;
 }
