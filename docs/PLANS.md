@@ -15,6 +15,7 @@
 | 01-5 | [Tasks/01-5_basic_aim_and_fire.md](../Tasks/01-5_basic_aim_and_fire.md) | 마우스 우클릭 조준과 좌클릭 기본 사격 명중 판정 검증 | 완료 |
 | 01-6 | [Tasks/01-6_wraith_locomotion_mesh.md](../Tasks/01-6_wraith_locomotion_mesh.md) | 플레이어 큐브를 Paragon Wraith 메시와 기본 이동 로코모션으로 교체 | 완료 |
 | 01-7 | [Tasks/01-7_three_step_fire_combo.md](../Tasks/01-7_three_step_fire_combo.md) | 좌클릭 연속 사격을 1타·2타·3타 콤보로 관리 | 완료 |
+| 01-8 | [Tasks/01-8_anim_notify_combo_attacks.md](../Tasks/01-8_anim_notify_combo_attacks.md) | 3단 콤보 사격 단계별 공격 애니메이션과 Anim Notify 입력 허용 구간 연결 | 진행중 |
 
 ## 상태 범례
 
@@ -28,3 +29,5 @@
 - 2026-07-30: 01-6 사용자 결과 확인 완료, task 상태 완료 처리.
 - 2026-07-30: 사용자 요청에 따라 01-7 좌클릭 3단 콤보 사격 상태 관리 task 문서 작성.
 - 2026-07-30: 01-7 `APlayerCubeCharacter`에 3단 사격 콤보 단계, 단계별 피해량, 콤보 리셋 시간, HUD 참조용 조회 함수를 추가하고 사용자 결과 확인 대기.
+- 2026-07-30: 사용자 요청에 따라 01-8 3단 콤보 공격 애니메이션과 Anim Notify 입력 허용 구간 task 문서 작성.
+- 2026-07-30: 01-8 `APlayerCubeCharacter`에 단계별 공격 몽타주 연결값과 Anim Notify 입력 허용 함수를 추가하고 사용자 에디터 자산 연결과 결과 확인 대기.

@@ -2,6 +2,8 @@
 
 #include "PlayerCubeCharacter.h"
 
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -66,6 +68,36 @@ float APlayerCubeCharacter::GetCurrentFireComboDamage() const
 	default:
 		return 0.0f;
 	}
+}
+
+void APlayerCubeCharacter::OpenFireComboInputWindow()
+{
+	if (!bIsFireComboAttackActive || CurrentFireComboStep >= 3)
+	{
+		return;
+	}
+
+	bIsFireComboInputWindowOpen = true;
+	UE_LOG(LogTemp, Log, TEXT("PlayerCubeCharacter: Fire combo input window opened. ComboStep=%d."), CurrentFireComboStep);
+}
+
+void APlayerCubeCharacter::CloseFireComboInputWindow()
+{
+	bIsFireComboInputWindowOpen = false;
+	UE_LOG(LogTemp, Log, TEXT("PlayerCubeCharacter: Fire combo input window closed. ComboStep=%d."), CurrentFireComboStep);
+}
+
+void APlayerCubeCharacter::EndFireComboAttack()
+{
+	if (!bIsFireComboAttackActive && CurrentFireComboStep == 0)
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("PlayerCubeCharacter: Fire combo attack ended. ComboStep=%d."), CurrentFireComboStep);
+	bIsFireComboAttackActive = false;
+	bIsFireComboInputWindowOpen = false;
+	CurrentFireComboStep = 0;
 }
 
 void APlayerCubeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -200,8 +232,20 @@ void APlayerCubeCharacter::StopAim()
 
 void APlayerCubeCharacter::Fire()
 {
-	AdvanceFireCombo();
+	if (!TryAdvanceFireComboFromInput())
+	{
+		UE_LOG(
+			LogTemp,
+			Log,
+			TEXT("PlayerCubeCharacter: Fire input ignored by Anim Notify combo window. ComboStep=%d. WindowOpen=%s."),
+			CurrentFireComboStep,
+			bIsFireComboInputWindowOpen ? TEXT("true") : TEXT("false")
+		);
+		return;
+	}
+
 	const float CurrentComboDamage = GetCurrentFireComboDamage();
+	PlayFireComboAnimation();
 
 	UE_LOG(
 		LogTemp,
@@ -212,6 +256,110 @@ void APlayerCubeCharacter::Fire()
 		CurrentComboDamage
 	);
 
+	PerformFireTrace(CurrentComboDamage);
+}
+
+bool APlayerCubeCharacter::TryAdvanceFireComboFromInput()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		CurrentFireComboStep = 1;
+		LastFireComboInputTime = -1000.0f;
+		bIsFireComboAttackActive = true;
+		bIsFireComboInputWindowOpen = false;
+		return true;
+	}
+
+	if (!bIsFireComboAttackActive || CurrentFireComboStep == 0)
+	{
+		CurrentFireComboStep = 1;
+		LastFireComboInputTime = World->GetTimeSeconds();
+		bIsFireComboAttackActive = true;
+		bIsFireComboInputWindowOpen = false;
+		return true;
+	}
+
+	if (!bIsFireComboInputWindowOpen || CurrentFireComboStep >= 3)
+	{
+		return false;
+	}
+
+	++CurrentFireComboStep;
+	LastFireComboInputTime = World->GetTimeSeconds();
+	bIsFireComboInputWindowOpen = false;
+	return true;
+}
+
+void APlayerCubeCharacter::PlayFireComboAnimation()
+{
+	UAnimMontage* FireComboMontage = GetFireComboMontageForStep(CurrentFireComboStep);
+	if (!FireComboMontage)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCubeCharacter: Fire combo montage is not assigned. ComboStep=%d."), CurrentFireComboStep);
+		return;
+	}
+
+	USkeletalMeshComponent* CharacterMesh = GetMesh();
+	if (!CharacterMesh)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCubeCharacter: Fire combo montage ignored because CharacterMesh is missing."));
+		return;
+	}
+
+	UAnimInstance* AnimInstance = CharacterMesh->GetAnimInstance();
+	if (!AnimInstance)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCubeCharacter: Fire combo montage ignored because AnimInstance is missing."));
+		return;
+	}
+
+	AnimInstance->Montage_Stop(FireComboMontageStopBlendOutTime);
+	AnimInstance->Montage_Play(FireComboMontage, FireComboMontagePlayRate);
+
+	const FName SectionName = GetFireComboSectionNameForStep(CurrentFireComboStep);
+	if (!SectionName.IsNone())
+	{
+		AnimInstance->Montage_JumpToSection(SectionName, FireComboMontage);
+	}
+}
+
+UAnimMontage* APlayerCubeCharacter::GetFireComboMontageForStep(int32 ComboStep) const
+{
+	switch (ComboStep)
+	{
+	case 1:
+		return FireComboStep1Montage.Get();
+	case 2:
+		return FireComboStep2Montage ? FireComboStep2Montage.Get() : FireComboStep1Montage.Get();
+	case 3:
+		if (FireComboStep3Montage)
+		{
+			return FireComboStep3Montage.Get();
+		}
+		return FireComboStep2Montage ? FireComboStep2Montage.Get() : FireComboStep1Montage.Get();
+	default:
+		return nullptr;
+	}
+}
+
+FName APlayerCubeCharacter::GetFireComboSectionNameForStep(int32 ComboStep) const
+{
+	switch (ComboStep)
+	{
+	case 1:
+		return FireComboStep1SectionName;
+	case 2:
+		return FireComboStep2SectionName;
+	case 3:
+		return FireComboStep3SectionName;
+	default:
+		return NAME_None;
+	}
+}
+
+void APlayerCubeCharacter::PerformFireTrace(float CurrentComboDamage)
+{
 	if (!ShoulderCamera)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PlayerCubeCharacter: Fire ignored because ShoulderCamera is missing."));
@@ -264,29 +412,4 @@ void APlayerCubeCharacter::Fire()
 		CurrentFireComboStep,
 		CurrentComboDamage
 	);
-}
-
-void APlayerCubeCharacter::AdvanceFireCombo()
-{
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		CurrentFireComboStep = 1;
-		LastFireComboInputTime = -1000.0f;
-		return;
-	}
-
-	const float CurrentTime = World->GetTimeSeconds();
-	const bool bCanContinueCombo = (CurrentTime - LastFireComboInputTime) <= FireComboResetTime;
-
-	if (bCanContinueCombo && CurrentFireComboStep > 0 && CurrentFireComboStep < 3)
-	{
-		++CurrentFireComboStep;
-	}
-	else
-	{
-		CurrentFireComboStep = 1;
-	}
-
-	LastFireComboInputTime = CurrentTime;
 }

@@ -9,6 +9,7 @@
 class UInputAction;
 class UInputMappingContext;
 class UCameraComponent;
+class UAnimMontage;
 class USpringArmComponent;
 struct FInputActionValue;
 
@@ -28,6 +29,18 @@ public:
 	// HUD나 Blueprint에서 현재 사격 콤보 단계의 피해량 값을 읽는다.
 	UFUNCTION(BlueprintPure, Category = "Combat|Combo")
 	float GetCurrentFireComboDamage() const;
+
+	// Anim Notify에서 다음 콤보 입력을 받을 수 있는 구간을 연다.
+	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
+	void OpenFireComboInputWindow();
+
+	// Anim Notify에서 다음 콤보 입력을 받을 수 있는 구간을 닫는다.
+	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
+	void CloseFireComboInputWindow();
+
+	// Anim Notify 또는 몽타주 종료 시점에서 현재 사격 콤보를 끝낸다.
+	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
+	void EndFireComboAttack();
 
 protected:
 	// 이동 Input Action을 Enhanced Input 컴포넌트에 연결한다.
@@ -76,6 +89,30 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Combo", meta = (AllowPrivateAccess = "true"))
 	float FireComboResetTime = 0.8f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Combo|Animation", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> FireComboStep1Montage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Combo|Animation", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> FireComboStep2Montage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Combo|Animation", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> FireComboStep3Montage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Combo|Animation", meta = (AllowPrivateAccess = "true"))
+	FName FireComboStep1SectionName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Combo|Animation", meta = (AllowPrivateAccess = "true"))
+	FName FireComboStep2SectionName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Combo|Animation", meta = (AllowPrivateAccess = "true"))
+	FName FireComboStep3SectionName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Combo|Animation", meta = (AllowPrivateAccess = "true"))
+	float FireComboMontagePlayRate = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Combo|Animation", meta = (AllowPrivateAccess = "true"))
+	float FireComboMontageStopBlendOutTime = 0.15f;
+
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Combat|Combo", meta = (AllowPrivateAccess = "true"))
 	int32 CurrentFireComboStep = 0;
 
@@ -92,6 +129,8 @@ private:
 	float AimingCameraFov = 65.0f;
 
 	bool bIsAiming = false;
+	bool bIsFireComboAttackActive = false;
+	bool bIsFireComboInputWindowOpen = false;
 	float LastFireComboInputTime = -1000.0f;
 
 	// 현재 소유 플레이어에 이동 입력 매핑 컨텍스트를 등록한다.
@@ -112,6 +151,18 @@ private:
 	// 발사 입력이 들어오면 카메라 정면으로 명중 판정을 확인한다.
 	void Fire();
 
-	// 좌클릭 입력 시간에 따라 현재 사격 콤보 단계를 갱신한다.
-	void AdvanceFireCombo();
+	// 좌클릭 입력이 현재 Anim Notify 입력 허용 상태에서 유효한지 판단하고 콤보 단계를 갱신한다.
+	bool TryAdvanceFireComboFromInput();
+
+	// 현재 사격 콤보 단계에 맞는 공격 몽타주 또는 섹션을 재생한다.
+	void PlayFireComboAnimation();
+
+	// 현재 사격 콤보 단계에 맞는 몽타주 자산을 찾는다.
+	UAnimMontage* GetFireComboMontageForStep(int32 ComboStep) const;
+
+	// 현재 사격 콤보 단계에 맞는 몽타주 섹션 이름을 찾는다.
+	FName GetFireComboSectionNameForStep(int32 ComboStep) const;
+
+	// 카메라 정면으로 기존 사격 명중 판정을 실행한다.
+	void PerformFireTrace(float CurrentComboDamage);
 };
