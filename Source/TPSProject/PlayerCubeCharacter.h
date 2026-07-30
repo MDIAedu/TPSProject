@@ -10,7 +10,6 @@ class UInputAction;
 class UInputMappingContext;
 class UCameraComponent;
 class USpringArmComponent;
-class UStaticMeshComponent;
 struct FInputActionValue;
 
 UCLASS()
@@ -19,7 +18,7 @@ class TPSPROJECT_API APlayerCubeCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	// 플레이어 이동 검증용 큐브 Character의 기본 컴포넌트와 이동 값을 만든다.
+	// 플레이어 Character의 기본 컴포넌트와 이동 값을 만든다.
 	APlayerCubeCharacter();
 
 protected:
@@ -27,9 +26,6 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Cube", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UStaticMeshComponent> CubeMesh;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> CameraBoom;
 

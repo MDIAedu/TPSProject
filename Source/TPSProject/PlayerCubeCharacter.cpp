@@ -4,7 +4,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/StaticMeshComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -14,7 +14,6 @@
 #include "InputAction.h"
 #include "InputActionValue.h"
 #include "InputMappingContext.h"
-#include "UObject/ConstructorHelpers.h"
 
 APlayerCubeCharacter::APlayerCubeCharacter()
 {
@@ -24,19 +23,12 @@ APlayerCubeCharacter::APlayerCubeCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	GetCapsuleComponent()->InitCapsuleSize(50.0f, 50.0f);
+	GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);
 
-	CubeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeMesh"));
-	CubeMesh->SetupAttachment(GetRootComponent());
-
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
-	if (CubeMeshAsset.Succeeded())
-	{
-		CubeMesh->SetStaticMesh(CubeMeshAsset.Object);
-	}
-
-	CubeMesh->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
-	CubeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	USkeletalMeshComponent* CharacterMesh = GetMesh();
+	CharacterMesh->SetRelativeLocation(FVector(0.0f, 0.0f, -96.0f));
+	CharacterMesh->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+	CharacterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetRootComponent());
@@ -74,7 +66,7 @@ void APlayerCubeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	if (MoveAction)
 	{
-		// MoveAction 입력이 계속 들어오는 동안 Move 함수를 호출해서 큐브 Character를 이동시킨다.
+		// MoveAction 입력이 계속 들어오는 동안 Move 함수를 호출해서 플레이어 Character를 이동시킨다.
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCubeCharacter::Move);
 	}
 
