@@ -37,3 +37,4 @@
 - 2026-07-31: 01-9 `APlayerCubeCharacter`와 `UPlayerWraithAnimInstance`에 Aim Offset용 `AimPitch` 전달 값을 추가하고 사용자 에디터 자산 연결과 결과 확인 대기.
 - 2026-07-31: 01-9 사용자 결과 확인 완료, task 상태 완료 처리.
 - 2026-07-31: 사용자 요청에 따라 01-10 스페이스바 점프와 공중 단일 모션 검증 task 문서 작성.
+- 2026-07-31: 01-10 `APlayerCubeCharacter`에 점프 입력 바인딩을 추가하고 `UPlayerWraithAnimInstance`에 공중 상태 값을 추가한 뒤 사용자 에디터 자산 연결과 결과 확인 대기.

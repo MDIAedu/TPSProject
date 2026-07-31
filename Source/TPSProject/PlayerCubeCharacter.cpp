@@ -134,6 +134,18 @@ void APlayerCubeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCubeCharacter::Look);
 	}
 
+	if (JumpAction)
+	{
+		// 스페이스바 같은 점프 입력이 눌리는 순간 CharacterMovement의 점프 흐름을 시작한다.
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &APlayerCubeCharacter::StartJump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &APlayerCubeCharacter::StopJump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Canceled, this, &APlayerCubeCharacter::StopJump);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCubeCharacter: JumpAction is not assigned."));
+	}
+
 	if (AimAction)
 	{
 		// 우클릭을 누르고 있는 동안 확대 조준 카메라 상태로 둔다.
@@ -206,6 +218,23 @@ void APlayerCubeCharacter::Look(const FInputActionValue& Value)
 
 	AddControllerYawInput(LookInput.X);
 	AddControllerPitchInput(LookInput.Y);
+}
+
+void APlayerCubeCharacter::StartJump()
+{
+	if (!CanJump())
+	{
+		UE_LOG(LogTemp, Log, TEXT("PlayerCubeCharacter: Jump input ignored because character cannot jump now."));
+		return;
+	}
+
+	Jump();
+	UE_LOG(LogTemp, Log, TEXT("PlayerCubeCharacter: Jump started."));
+}
+
+void APlayerCubeCharacter::StopJump()
+{
+	StopJumping();
 }
 
 void APlayerCubeCharacter::StartAim()

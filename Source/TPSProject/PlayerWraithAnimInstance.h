@@ -30,6 +30,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Locomotion")
 	bool bIsMoving = false;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Locomotion")
+	bool bIsInAir = false;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Aim")
 	float AimPitch = 0.0f;
 

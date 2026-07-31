@@ -2,6 +2,8 @@
 
 #include "PlayerWraithAnimInstance.h"
 
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Pawn.h"
 #include "PlayerCubeCharacter.h"
 
@@ -34,12 +36,20 @@ void UPlayerWraithAnimInstance::UpdateLocomotionValues()
 		Speed = 0.0f;
 		Direction = 0.0f;
 		bIsMoving = false;
+		bIsInAir = false;
 		return;
 	}
 
 	const FVector HorizontalVelocity(CachedPawn->GetVelocity().X, CachedPawn->GetVelocity().Y, 0.0f);
 	Speed = HorizontalVelocity.Size();
 	bIsMoving = Speed > 3.0f;
+	bIsInAir = false;
+
+	const ACharacter* CharacterOwner = Cast<ACharacter>(CachedPawn);
+	if (CharacterOwner && CharacterOwner->GetCharacterMovement())
+	{
+		bIsInAir = CharacterOwner->GetCharacterMovement()->IsFalling();
+	}
 
 	if (!bIsMoving)
 	{

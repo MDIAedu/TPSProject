@@ -67,6 +67,9 @@ private:
 	TObjectPtr<UInputAction> LookAction;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> JumpAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> AimAction;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
@@ -145,6 +148,12 @@ private:
 
 	// 마우스 입력으로 받은 2D 값을 카메라 회전 입력으로 바꾼다.
 	void Look(const FInputActionValue& Value);
+
+	// 점프 입력이 눌렸을 때 지상 상태라면 점프를 시작한다.
+	void StartJump();
+
+	// 점프 입력이 끝났을 때 점프 입력 유지 상태를 해제한다.
+	void StopJump();
 
 	// 조준 입력이 눌렸을 때 사격 가능한 조준 상태로 바꾼다.
 	void StartAim();
