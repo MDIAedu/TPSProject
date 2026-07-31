@@ -70,6 +70,12 @@ float APlayerCubeCharacter::GetCurrentFireComboDamage() const
 	}
 }
 
+float APlayerCubeCharacter::GetAimPitch() const
+{
+	const FRotator ControlRotation = GetControlRotation();
+	return FMath::Clamp(FRotator::NormalizeAxis(ControlRotation.Pitch), -89.0f, 89.0f);
+}
+
 void APlayerCubeCharacter::OpenFireComboInputWindow()
 {
 	if (!bIsFireComboAttackActive || CurrentFireComboStep >= 3)

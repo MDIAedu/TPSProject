@@ -3,6 +3,7 @@
 #include "PlayerWraithAnimInstance.h"
 
 #include "GameFramework/Pawn.h"
+#include "PlayerCubeCharacter.h"
 
 void UPlayerWraithAnimInstance::NativeInitializeAnimation()
 {
@@ -10,6 +11,7 @@ void UPlayerWraithAnimInstance::NativeInitializeAnimation()
 
 	CachedPawn = TryGetPawnOwner();
 	UpdateLocomotionValues();
+	UpdateAimValues();
 }
 
 void UPlayerWraithAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -22,6 +24,7 @@ void UPlayerWraithAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	UpdateLocomotionValues();
+	UpdateAimValues();
 }
 
 void UPlayerWraithAnimInstance::UpdateLocomotionValues()
@@ -46,4 +49,16 @@ void UPlayerWraithAnimInstance::UpdateLocomotionValues()
 
 	const FVector LocalVelocity = CachedPawn->GetActorTransform().InverseTransformVectorNoScale(HorizontalVelocity);
 	Direction = FMath::RadiansToDegrees(FMath::Atan2(LocalVelocity.Y, LocalVelocity.X));
+}
+
+void UPlayerWraithAnimInstance::UpdateAimValues()
+{
+	const APlayerCubeCharacter* PlayerCharacter = Cast<APlayerCubeCharacter>(CachedPawn);
+	if (!PlayerCharacter)
+	{
+		AimPitch = 0.0f;
+		return;
+	}
+
+	AimPitch = PlayerCharacter->GetAimPitch();
 }

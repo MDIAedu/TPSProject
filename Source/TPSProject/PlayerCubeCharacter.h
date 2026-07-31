@@ -30,6 +30,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Combat|Combo")
 	float GetCurrentFireComboDamage() const;
 
+	// Animation Blueprint에서 Aim Offset 세로 축으로 사용할 카메라 Pitch 값을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Aim")
+	float GetAimPitch() const;
+
 	// Anim Notify에서 다음 콤보 입력을 받을 수 있는 구간을 연다.
 	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
 	void OpenFireComboInputWindow();

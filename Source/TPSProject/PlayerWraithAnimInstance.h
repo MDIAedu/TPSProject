@@ -30,10 +30,16 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Locomotion")
 	bool bIsMoving = false;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Aim")
+	float AimPitch = 0.0f;
+
 private:
 	UPROPERTY(Transient)
 	TObjectPtr<APawn> CachedPawn;
 
 	// 소유 Pawn의 월드 속도를 애니메이션 Blueprint에서 사용할 로컬 이동 값으로 바꾼다.
 	void UpdateLocomotionValues();
+
+	// 소유 Pawn의 카메라 Pitch를 Aim Offset 세로 축 값으로 갱신한다.
+	void UpdateAimValues();
 };

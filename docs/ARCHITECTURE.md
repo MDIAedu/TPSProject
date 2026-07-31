@@ -27,7 +27,7 @@
 - `Content/ParagonWraith/`: Paragon Wraith 모델, 애니메이션, 머티리얼 원본 에셋
 - `Source/TPSProject/`: 게임 모듈 C++ 코드
   - `PlayerCubeCharacter.h`, `PlayerCubeCharacter.cpp`: 플레이어 입력, 카메라, 기본 사격 검증용 Character
-  - `PlayerWraithAnimInstance.h`, `PlayerWraithAnimInstance.cpp`: Wraith 이동 로코모션용 AnimInstance
+  - `PlayerWraithAnimInstance.h`, `PlayerWraithAnimInstance.cpp`: Wraith 이동 로코모션과 조준 애니메이션 값 제공용 AnimInstance
 
 
 ## 권장 파일 배치
