@@ -33,6 +33,38 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Boss|Melee Attack")
 	float GetMeleeAttackDuration() const;
 
+	// 점프 내려찍기 공격 후보가 되는 최소 거리를 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
+	float GetJumpSlamTriggerDistance() const;
+
+	// 점프 내려찍기 공격 발동 확률을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
+	float GetJumpSlamChance() const;
+
+	// 점프 내려찍기 공격 이동 시간을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
+	float GetJumpSlamDuration() const;
+
+	// 점프 내려찍기 공격 원형 판정 범위를 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
+	float GetJumpSlamDamageRadius() const;
+
+	// 점프 내려찍기 공격 피해량을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
+	float GetJumpSlamDamage() const;
+
+	// 점프 내려찍기 공격 재사용 대기시간을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
+	float GetJumpSlamCooldown() const;
+
+	// 점프 내려찍기 이동 중 임시로 들어올리는 높이를 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
+	float GetJumpSlamArcHeight() const;
+
+	// 점프 내려찍기 중 플레이어와 겹쳤을 때 밀어내는 힘을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
+	float GetJumpSlamOverlapLaunchStrength() const;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Visual", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> BossVisualMesh;
@@ -48,4 +80,28 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Melee Attack", meta = (AllowPrivateAccess = "true"))
 	float MeleeAttackDuration = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
+	float JumpSlamTriggerDistance = 700.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (ClampMin = "0.0", ClampMax = "1.0", AllowPrivateAccess = "true"))
+	float JumpSlamChance = 0.35f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
+	float JumpSlamDuration = 0.8f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
+	float JumpSlamDamageRadius = 220.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
+	float JumpSlamDamage = 20.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
+	float JumpSlamCooldown = 4.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
+	float JumpSlamArcHeight = 280.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
+	float JumpSlamOverlapLaunchStrength = 900.0f;
 };

@@ -48,3 +48,43 @@ float ABossCubeCharacter::GetMeleeAttackDuration() const
 {
 	return MeleeAttackDuration;
 }
+
+float ABossCubeCharacter::GetJumpSlamTriggerDistance() const
+{
+	return JumpSlamTriggerDistance;
+}
+
+float ABossCubeCharacter::GetJumpSlamChance() const
+{
+	return JumpSlamChance;
+}
+
+float ABossCubeCharacter::GetJumpSlamDuration() const
+{
+	return JumpSlamDuration;
+}
+
+float ABossCubeCharacter::GetJumpSlamDamageRadius() const
+{
+	return JumpSlamDamageRadius;
+}
+
+float ABossCubeCharacter::GetJumpSlamDamage() const
+{
+	return JumpSlamDamage;
+}
+
+float ABossCubeCharacter::GetJumpSlamCooldown() const
+{
+	return JumpSlamCooldown;
+}
+
+float ABossCubeCharacter::GetJumpSlamArcHeight() const
+{
+	return JumpSlamArcHeight;
+}
+
+float ABossCubeCharacter::GetJumpSlamOverlapLaunchStrength() const
+{
+	return JumpSlamOverlapLaunchStrength;
+}

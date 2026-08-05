@@ -11,7 +11,8 @@ UENUM(BlueprintType)
 enum class EBossCubeAIState : uint8
 {
 	Chase,
-	MeleeAttack
+	MeleeAttack,
+	JumpSlamAttack
 };
 
 UCLASS()
@@ -46,7 +47,17 @@ private:
 
 	FTimerHandle ChaseTimerHandle;
 	FTimerHandle MeleeAttackTimerHandle;
+	FTimerHandle JumpSlamMoveTimerHandle;
+	FTimerHandle JumpSlamLandTimerHandle;
 	float LastMeleeAttackTime = -1000.0f;
+	float LastJumpSlamAttackTime = -1000.0f;
+	float JumpSlamElapsedTime = 0.0f;
+	FVector JumpSlamStartLocation = FVector::ZeroVector;
+	FVector LockedJumpSlamLandingLocation = FVector::ZeroVector;
+	TEnumAsByte<ECollisionResponse> PreviousPawnCollisionResponse = ECR_Block;
+	bool bJumpSlamCollisionOverrideActive = false;
+	bool bJumpSlamOverlapLaunchApplied = false;
+	bool bJumpSlamDamageApplied = false;
 
 	// 현재 플레이어 Pawn을 찾아 길찾기 이동 대상으로 다시 지정한다.
 	void UpdateChaseTarget();
@@ -59,4 +70,31 @@ private:
 
 	// 일반 공격 상태를 끝내고 다시 추적 상태로 되돌린다.
 	void FinishMeleeAttack();
+
+	// 추적 중 거리, 확률, 쿨타임을 확인해 점프 내려찍기 상태로 전환할 수 있는지 판단한다.
+	bool CanStartJumpSlamAttack(const APawn* ControlledPawn, const APawn* PlayerPawn) const;
+
+	// 발동 시점의 플레이어 위치를 고정하고 점프 내려찍기 이동을 시작한다.
+	void StartJumpSlamAttack(const APawn* PlayerPawn);
+
+	// 점프 중 보스와 플레이어가 겹칠 수 있게 Pawn 채널 충돌 응답을 Overlap으로 바꾼다.
+	void EnableJumpSlamOverlapCollision();
+
+	// 점프 중 바꾼 Pawn 채널 충돌 응답을 원래 값으로 되돌린다.
+	void RestoreJumpSlamCollision();
+
+	// 점프 공격 피해를 받은 플레이어를 착지 지점 바깥쪽으로 밀어낸다.
+	void LaunchPlayerFromJumpSlam(ACharacter* PlayerCharacter);
+
+	// 점프 중 보스와 플레이어가 겹쳤다면 즉시 피해를 주고 밀어낸다.
+	void ApplyJumpSlamDamageFromOverlap();
+
+	// 고정된 착지 지점까지 보스 위치를 보간 이동한다.
+	void UpdateJumpSlamMovement();
+
+	// 착지 지점을 중심으로 원형 범위 피해를 판정한다.
+	void ResolveJumpSlamAttack();
+
+	// 점프 내려찍기 상태를 끝내고 다시 추적 상태로 되돌린다.
+	void FinishJumpSlamAttack();
 };
