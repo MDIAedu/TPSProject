@@ -28,3 +28,23 @@ ABossCubeCharacter::ABossCubeCharacter()
 	CharacterMovementComponent->bOrientRotationToMovement = true;
 	CharacterMovementComponent->RotationRate = FRotator(0.0f, 360.0f, 0.0f);
 }
+
+float ABossCubeCharacter::GetMeleeAttackRange() const
+{
+	return MeleeAttackRange;
+}
+
+float ABossCubeCharacter::GetMeleeAttackDamage() const
+{
+	return MeleeAttackDamage;
+}
+
+float ABossCubeCharacter::GetMeleeAttackCooldown() const
+{
+	return MeleeAttackCooldown;
+}
+
+float ABossCubeCharacter::GetMeleeAttackDuration() const
+{
+	return MeleeAttackDuration;
+}

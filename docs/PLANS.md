@@ -19,6 +19,7 @@
 | 01-9 | [Tasks/01-9_vertical_aim_offset.md](../Tasks/01-9_vertical_aim_offset.md) | 마우스 상하 움직임에 따른 상체 세로 조준 Aim Offset 검증 | 완료 |
 | 01-10 | [Tasks/01-10_spacebar_jump.md](../Tasks/01-10_spacebar_jump.md) | 스페이스바 입력으로 플레이어 점프와 공중 단일 모션 검증 | 완료 |
 | 01-11 | [Tasks/01-11_boss_cube_chase_movement.md](../Tasks/01-11_boss_cube_chase_movement.md) | 보스 큐브의 길찾기 기반 플레이어 추적 이동 검증 | 완료 |
+| 01-12 | [Tasks/01-12_boss_melee_attack_state.md](../Tasks/01-12_boss_melee_attack_state.md) | 보스의 근접 일반 공격 상태 전환 검증 | 완료 |
 
 ## 상태 범례
 
@@ -42,3 +43,6 @@
 - 2026-08-05: 사용자 요청에 따라 01-11 보스 큐브의 길찾기 기반 플레이어 추적 이동 검증 task 문서 작성.
 - 2026-08-05: 01-11 `ABossCubeCharacter`와 `ABossCubeAIController`를 추가해 플레이어 Pawn을 길찾기 이동 대상으로 갱신하고 사용자 에디터 자산 배치와 결과 확인 대기.
 - 2026-08-05: 01-11 사용자 결과 확인 완료, task 상태 완료 처리.
+- 2026-08-05: 사용자 요청에 따라 01-12 보스 근접 일반 공격 상태 전환 검증 task 문서 작성.
+- 2026-08-05: 01-12 `ABossCubeAIController`에 추적/근접 공격 FSM과 기본 피해량 20 일반 공격 판정을 추가하고 사용자 결과 확인 대기.
+- 2026-08-05: 01-12 사용자 결과 확인 완료, task 상태 완료 처리.
