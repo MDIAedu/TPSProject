@@ -72,3 +72,5 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+Content/ParagonRampage/Characters/Global/MaterialLayers/Wood/T_TreeBark_D.uasset
+Content/ParagonRampage/Characters/Global/MaterialLayers/Wood/T_TreeBark_N.uasset
