@@ -10,6 +10,7 @@ class UInputAction;
 class UInputMappingContext;
 class UCameraComponent;
 class UAnimMontage;
+class UPlayerHpWidget;
 class USpringArmComponent;
 struct FInputActionValue;
 
@@ -34,6 +35,18 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Aim")
 	float GetAimPitch() const;
 
+	// Widget Blueprint에서 플레이어 현재 HP 값을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Player|Health")
+	float GetCurrentHealth() const;
+
+	// Widget Blueprint에서 플레이어 최대 HP 값을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Player|Health")
+	float GetMaxHealth() const;
+
+	// Widget Blueprint에서 플레이어 HP 비율을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Player|Health")
+	float GetHealthPercent() const;
+
 	// Anim Notify에서 다음 콤보 입력을 받을 수 있는 구간을 연다.
 	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
 	void OpenFireComboInputWindow();
@@ -47,6 +60,12 @@ public:
 	void EndFireComboAttack();
 
 protected:
+	// 게임이 시작될 때 HP 초기값과 선택된 HP Widget을 준비한다.
+	virtual void BeginPlay() override;
+
+	// 보스 공격의 ApplyDamage 호출을 받아 플레이어 HP를 줄인다.
+	virtual float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
 	// 이동 Input Action을 Enhanced Input 컴포넌트에 연결한다.
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -83,6 +102,18 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	float FireDebugDrawTime = 5.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player|Health", meta = (AllowPrivateAccess = "true", ClampMin = "1.0"))
+	float MaxHealth = 100.0f;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Player|Health", meta = (AllowPrivateAccess = "true"))
+	float CurrentHealth = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player|UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UPlayerHpWidget> PlayerHpWidgetClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UPlayerHpWidget> PlayerHpWidgetInstance;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Combo", meta = (AllowPrivateAccess = "true"))
 	float FireComboStep1Damage = 10.0f;

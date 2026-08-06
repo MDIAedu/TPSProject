@@ -23,6 +23,7 @@
 | 01-13 | [Tasks/01-13_boss_jump_slam_attack.md](../Tasks/01-13_boss_jump_slam_attack.md) | 보스의 거리 기반 점프 내려찍기 공격 검증 | 완료 |
 | 01-14 | [Tasks/01-14_boss_fsm_animation_state.md](../Tasks/01-14_boss_fsm_animation_state.md) | 보스 FSM 상태에 맞는 애니메이션 상태 전환 검증 | 완료 |
 | 01-15 | [Tasks/01-15_circular_boss_battle_arena.md](../Tasks/01-15_circular_boss_battle_arena.md) | 산과 절벽으로 둘러싸인 원형 보스 전투장 검증 | 완료 |
+| 01-16 | [Tasks/01-16_player_hp_widget.md](../Tasks/01-16_player_hp_widget.md) | 플레이어 피격 시 HP가 줄어드는 Widget 검증 | 진행중 |
 
 ## 상태 범례
 
@@ -47,3 +48,6 @@
 - 2026-08-06: 사용자 요청에 따라 01-15 산과 절벽으로 둘러싸인 원형 보스 전투장 검증 task 문서 작성.
 - 2026-08-06: 01-15 `ABossBattleArenaActor`를 추가해 원형 전투장 바닥, 외곽 Static Mesh 링, 충돌 경계를 수치 기반으로 구성하고 사용자 결과 확인 대기.
 - 2026-08-06: 01-15 외곽 경계 Mesh 세그먼트마다 높이, 두께, 위치 변화를 적용해 산/절벽 실루엣처럼 보이도록 보정.
+- 2026-08-06: 사용자 요청에 따라 01-16 HP Widget 검증 task 문서 초안 작성.
+- 2026-08-06: 사용자 정정에 따라 01-16을 플레이어 피격 시 HP가 줄어드는 Widget 검증 task로 수정.
+- 2026-08-06: 01-16 `UPlayerHpWidget`과 플레이어 HP 피해 처리를 추가하고 HP 프레임/게이지 Texture를 import한 뒤 사용자 Widget Blueprint 구성 및 결과 확인 대기.

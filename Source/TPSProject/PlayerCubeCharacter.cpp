@@ -16,6 +16,7 @@
 #include "InputAction.h"
 #include "InputActionValue.h"
 #include "InputMappingContext.h"
+#include "PlayerHpWidget.h"
 
 APlayerCubeCharacter::APlayerCubeCharacter()
 {
@@ -74,6 +75,69 @@ float APlayerCubeCharacter::GetAimPitch() const
 {
 	const FRotator ControlRotation = GetControlRotation();
 	return FMath::Clamp(FRotator::NormalizeAxis(ControlRotation.Pitch), -89.0f, 89.0f);
+}
+
+float APlayerCubeCharacter::GetCurrentHealth() const
+{
+	return CurrentHealth;
+}
+
+float APlayerCubeCharacter::GetMaxHealth() const
+{
+	return MaxHealth;
+}
+
+float APlayerCubeCharacter::GetHealthPercent() const
+{
+	if (MaxHealth <= 0.0f)
+	{
+		return 0.0f;
+	}
+
+	return FMath::Clamp(CurrentHealth / MaxHealth, 0.0f, 1.0f);
+}
+
+void APlayerCubeCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CurrentHealth = FMath::Clamp(CurrentHealth, 0.0f, MaxHealth);
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (!PlayerController || !PlayerController->IsLocalController() || !PlayerHpWidgetClass)
+	{
+		return;
+	}
+
+	PlayerHpWidgetInstance = CreateWidget<UPlayerHpWidget>(PlayerController, PlayerHpWidgetClass);
+	if (PlayerHpWidgetInstance)
+	{
+		PlayerHpWidgetInstance->AddToViewport();
+	}
+}
+
+float APlayerCubeCharacter::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	const float AppliedDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	if (AppliedDamage <= 0.0f || CurrentHealth <= 0.0f)
+	{
+		return 0.0f;
+	}
+
+	const float PreviousHealth = CurrentHealth;
+	CurrentHealth = FMath::Clamp(CurrentHealth - AppliedDamage, 0.0f, MaxHealth);
+
+	UE_LOG(
+		LogTemp,
+		Log,
+		TEXT("PlayerCubeCharacter: Took damage. Damage=%.1f. Health=%.1f/%.1f. DamageCauser=%s."),
+		AppliedDamage,
+		CurrentHealth,
+		MaxHealth,
+		*GetNameSafe(DamageCauser)
+	);
+
+	return PreviousHealth - CurrentHealth;
 }
 
 void APlayerCubeCharacter::OpenFireComboInputWindow()

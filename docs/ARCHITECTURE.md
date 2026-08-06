@@ -25,14 +25,20 @@
 - `Content/Blueprints/`: 플레이어 등 검증용 Blueprint 자산
   - `BP_PlayerCubeCharacter.uasset`: 현재 플레이어 조작 대상 Blueprint
   - `BP_BossCubeCharacter.uasset`: 길찾기 추적 이동 검증용 보스 Blueprint
+- `Content/Texture/`: UI 검증용 Texture 자산
+  - `T_PlayerHpFrame.uasset`: 플레이어 HP 바 외곽 프레임 Texture
+  - `T_PlayerHpGauge.uasset`: 플레이어 HP 게이지 Texture
 - `Content/ParagonWraith/`: Paragon Wraith 모델, 애니메이션, 머티리얼 원본 에셋
 - `Source/TPSProject/`: 게임 모듈 C++ 코드
   - `PlayerCubeCharacter.h`, `PlayerCubeCharacter.cpp`: 플레이어 입력, 카메라, 기본 사격 검증용 Character
+  - `PlayerHpWidget.h`, `PlayerHpWidget.cpp`: 플레이어 HP 값을 Widget Blueprint에서 읽을 수 있게 제공하는 UserWidget
   - `PlayerWraithAnimInstance.h`, `PlayerWraithAnimInstance.cpp`: Wraith 이동 로코모션과 조준 애니메이션 값 제공용 AnimInstance
   - `BossCubeCharacter.h`, `BossCubeCharacter.cpp`: 길찾기 추적 이동 검증용 보스 Character
   - `BossCubeAIController.h`, `BossCubeAIController.cpp`: 보스가 플레이어를 길찾기 이동 대상으로 갱신하는 AIController
   - `BossCubeAnimInstance.h`, `BossCubeAnimInstance.cpp`: 보스 FSM 상태를 AnimBP에서 읽을 값으로 제공하는 AnimInstance
   - `BossBattleArenaActor.h`, `BossBattleArenaActor.cpp`: 원형 보스 전투장의 바닥, 외곽 Mesh, 충돌 경계를 수치 기반으로 구성하는 Actor
+- `Tools/Editor/`: Unreal Editor 자동화 스크립트
+  - `create_player_hp_textures.py`: 플레이어 HP PNG 이미지를 Unreal Texture 자산으로 import하는 스크립트
 
 
 ## 권장 파일 배치
