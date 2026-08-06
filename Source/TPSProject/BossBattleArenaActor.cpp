@@ -73,22 +73,29 @@ void ABossBattleArenaActor::UpdateBoundaryMeshes(int32 SafeSegmentCount, float S
 	}
 
 	const float SafeSourceSize = FMath::Max(BoundaryMeshSourceSize, 1.0f);
-	const float BoundaryCenterRadius = FMath::Max(ArenaRadius, 500.0f) + BoundaryThickness * 0.5f;
-	const FVector SegmentScale(
-		FMath::Max(BoundaryThickness / SafeSourceSize, 0.01f),
-		FMath::Max(SegmentLength / SafeSourceSize, 0.01f),
-		FMath::Max(BoundaryHeight / SafeSourceSize, 0.01f)
-	);
+	const float BaseBoundaryCenterRadius = FMath::Max(ArenaRadius, 500.0f) + BoundaryThickness * 0.5f;
 
 	for (int32 SegmentIndex = 0; SegmentIndex < SafeSegmentCount; ++SegmentIndex)
 	{
 		const float AngleRadians = 2.0f * UE_PI * static_cast<float>(SegmentIndex) / static_cast<float>(SafeSegmentCount);
+		const float VariationAlpha = GetBoundaryVariationAlpha(SegmentIndex, SafeSegmentCount);
+		const float HeightScale = FMath::Lerp(1.0f - BoundaryHeightVariation, 1.0f + BoundaryHeightVariation, VariationAlpha);
+		const float ThicknessScale = FMath::Lerp(1.0f - BoundaryThicknessVariation, 1.0f + BoundaryThicknessVariation, 1.0f - VariationAlpha);
+		const float RadiusOffset = FMath::Lerp(-BoundaryThickness, BoundaryThickness, VariationAlpha - 0.5f) * BoundaryRadiusVariation;
+		const float SegmentHeight = FMath::Max(BoundaryHeight * HeightScale, 100.0f);
+		const float SegmentThickness = FMath::Max(BoundaryThickness * ThicknessScale, 50.0f);
+		const float BoundaryCenterRadius = BaseBoundaryCenterRadius + RadiusOffset;
+		const FVector SegmentScale(
+			FMath::Max(SegmentThickness / SafeSourceSize, 0.01f),
+			FMath::Max(SegmentLength / SafeSourceSize, 0.01f),
+			FMath::Max(SegmentHeight / SafeSourceSize, 0.01f)
+		);
 		const FVector SegmentLocation(
 			FMath::Cos(AngleRadians) * BoundaryCenterRadius,
 			FMath::Sin(AngleRadians) * BoundaryCenterRadius,
-			BoundaryHeight * 0.5f
+			SegmentHeight * 0.5f
 		);
-		const FRotator SegmentRotation(0.0f, FMath::RadiansToDegrees(AngleRadians), 0.0f);
+		const FRotator SegmentRotation(0.0f, FMath::RadiansToDegrees(AngleRadians), FMath::Lerp(-4.0f, 4.0f, VariationAlpha));
 
 		BoundaryMeshInstances->AddInstance(FTransform(SegmentRotation, SegmentLocation, SegmentScale));
 	}
@@ -135,4 +142,12 @@ void ABossBattleArenaActor::RebuildBoundaryCollision(int32 SafeSegmentCount, flo
 
 		BoundaryCollisionComponents.Add(BoundaryCollisionComponent);
 	}
+}
+
+float ABossBattleArenaActor::GetBoundaryVariationAlpha(int32 SegmentIndex, int32 SafeSegmentCount) const
+{
+	const float NormalizedIndex = static_cast<float>(SegmentIndex) / static_cast<float>(FMath::Max(SafeSegmentCount, 1));
+	const float LargeWave = FMath::Sin(NormalizedIndex * UE_PI * 2.0f * 3.0f);
+	const float SmallWave = FMath::Sin((NormalizedIndex * UE_PI * 2.0f * 7.0f) + 0.75f);
+	return FMath::Clamp((LargeWave * 0.65f + SmallWave * 0.35f + 1.0f) * 0.5f, 0.0f, 1.0f);
 }

@@ -5,7 +5,7 @@
 
 ## 구현 항목
 - [x] 중앙에 플레이어와 보스가 전투할 수 있는 넓고 평평한 원형 전투 공간이 있다.
-- [x] 전투장 외곽이 산, 절벽, 바위 링, 또는 임시 경계 에셋으로 둘러싸인 폐쇄형 공간처럼 보인다.
+- [x] 전투장 외곽이 높낮이가 다른 산, 절벽, 바위 링, 또는 임시 경계 에셋으로 둘러싸인 폐쇄형 공간처럼 보인다.
 - [x] 플레이어가 전투 중 전투장 밖으로 이탈하지 못한다.
 - [x] 보스가 추적, 근접 공격, 점프 내려찍기 중 전투장 밖으로 이탈하지 못한다.
 - [x] 외곽 경계는 Static Mesh 기반 절벽, 바위 링, 또는 임시 Static Mesh 경계로 구성된다.
@@ -33,7 +33,7 @@
 - `BossBattleArenaActor`를 부모 클래스로 하는 `BP_BossBattleArena` Blueprint를 만든다.
 - `BP_BossBattleArena`의 중앙 바닥과 외곽 경계가 기본 Cube Static Mesh로 보이는지 확인한다.
 - 필요하면 `BP_BossBattleArena`의 `Arena|Visual` 값에서 중앙 바닥용 Static Mesh와 외곽 경계용 Static Mesh를 다른 에셋으로 교체한다.
-- `BP_BossBattleArena`의 `Arena|Shape` 값에서 `ArenaRadius`, `BoundarySegmentCount`, `BoundaryThickness`, `BoundaryHeight`, `BoundarySegmentOverlapScale`을 조정한다.
+- `BP_BossBattleArena`의 `Arena|Shape` 값에서 `ArenaRadius`, `BoundarySegmentCount`, `BoundaryThickness`, `BoundaryHeight`, `BoundaryHeightVariation`, `BoundaryRadiusVariation`, `BoundaryThicknessVariation`, `BoundarySegmentOverlapScale`을 조정한다.
 - `Content/Maps/L_BattleMap.umap`에 `BP_BossBattleArena`를 배치한다.
 - 플레이어와 보스가 중앙 전투 공간 안에서 시작하도록 배치 위치를 확인한다.
 - 전투장 배치 뒤 `NavMeshBoundsVolume`이 중앙 전투 공간을 덮도록 크기와 위치를 확인한다.
@@ -49,8 +49,8 @@
 ### 결과 확인
 - [ ] Unreal Editor에서 `Content/Maps/L_BattleMap.umap`을 연다.
 - [ ] 배치된 `BP_BossBattleArena`의 중앙이 넓고 평평한 전투 공간으로 보이는지 확인한다.
-- [ ] 전투장 외곽이 Static Mesh 경계로 둘러싸여 산, 절벽, 바위 링, 또는 임시 폐쇄형 공간처럼 보이는지 확인한다.
-- [ ] `ArenaRadius`, `BoundarySegmentCount`, `BoundaryThickness`, `BoundaryHeight` 값을 바꿨을 때 전투장 크기와 외곽 경계가 갱신되는지 확인한다.
+- [ ] 전투장 외곽이 Static Mesh 경계로 둘러싸여 높낮이가 다른 산, 절벽, 바위 링, 또는 임시 폐쇄형 공간처럼 보이는지 확인한다.
+- [ ] `ArenaRadius`, `BoundarySegmentCount`, `BoundaryThickness`, `BoundaryHeight`, `BoundaryHeightVariation` 값을 바꿨을 때 전투장 크기와 외곽 경계 실루엣이 갱신되는지 확인한다.
 - [ ] PIE를 실행한다.
 - [ ] 플레이어가 이동과 점프로 전투장 외곽을 넘어갈 수 없는지 확인한다.
 - [ ] 보스가 추적, 근접 공격, 점프 내려찍기 중 전투장 외곽 밖으로 나가지 않는지 확인한다.

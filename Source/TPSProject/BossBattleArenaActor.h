@@ -46,6 +46,15 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arena|Shape", meta = (ClampMin = "100.0", AllowPrivateAccess = "true"))
 	float BoundaryHeight = 650.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arena|Shape", meta = (ClampMin = "0.0", ClampMax = "1.0", AllowPrivateAccess = "true"))
+	float BoundaryHeightVariation = 0.45f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arena|Shape", meta = (ClampMin = "0.0", ClampMax = "1.0", AllowPrivateAccess = "true"))
+	float BoundaryRadiusVariation = 0.18f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arena|Shape", meta = (ClampMin = "0.0", ClampMax = "1.0", AllowPrivateAccess = "true"))
+	float BoundaryThicknessVariation = 0.25f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arena|Shape", meta = (ClampMin = "0.5", ClampMax = "2.0", AllowPrivateAccess = "true"))
 	float BoundarySegmentOverlapScale = 1.08f;
 
@@ -75,4 +84,7 @@ private:
 
 	// 플레이어와 보스가 전투장 밖으로 나가지 못하도록 Box 충돌 경계를 원형으로 배치한다.
 	void RebuildBoundaryCollision(int32 SafeSegmentCount, float SegmentLength);
+
+	// 세그먼트마다 같은 결과가 나오도록 산 능선처럼 보이는 높낮이 값을 만든다.
+	float GetBoundaryVariationAlpha(int32 SegmentIndex, int32 SafeSegmentCount) const;
 };
