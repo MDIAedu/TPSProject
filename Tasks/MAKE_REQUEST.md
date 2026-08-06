@@ -12,6 +12,7 @@
 ## 세부 설명
 - 기분 이미지가 아니고 codex exec 를 이용해서 HP 바 프레임, HP 게이지 바 를 만들어서 Conetent/Texture/ 폴더에 생성해 줘.
 - 생성된 이미지를 이용해서 HP Widget 을 구성해줘.
+- C++ 코드는 네가 만들고, 에디터에서 Widget Blueprint 는 내가 만들어서 적용할게.
 
 
 
