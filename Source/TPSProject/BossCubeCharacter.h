@@ -45,6 +45,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
 	float GetJumpSlamDuration() const;
 
+	// 점프 내려찍기 시작 애니메이션을 재생할 시간을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
+	float GetJumpSlamStartAnimDuration() const;
+
+	// 점프 내려찍기 착지 애니메이션을 재생할 시간을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
+	float GetJumpSlamLandAnimDuration() const;
+
 	// 점프 내려찍기 공격 원형 판정 범위를 읽는다.
 	UFUNCTION(BlueprintPure, Category = "Boss|Jump Slam")
 	float GetJumpSlamDamageRadius() const;
@@ -89,6 +97,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
 	float JumpSlamDuration = 0.8f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
+	float JumpSlamStartAnimDuration = 0.2f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
+	float JumpSlamLandAnimDuration = 0.35f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Jump Slam", meta = (AllowPrivateAccess = "true"))
 	float JumpSlamDamageRadius = 220.0f;

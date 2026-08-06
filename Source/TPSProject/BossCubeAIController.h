@@ -7,6 +7,7 @@
 #include "TimerManager.h"
 #include "BossCubeAIController.generated.h"
 
+// 열거형 ( enum 형) : 상태를 나열
 UENUM(BlueprintType)
 enum class EBossCubeAIState : uint8
 {
@@ -15,11 +16,21 @@ enum class EBossCubeAIState : uint8
 	JumpSlamAttack
 };
 
+UENUM(BlueprintType)
+enum class EBossJumpSlamAnimState : uint8
+{
+	None,
+	Start,
+	InAir,
+	Land
+};
+
 UCLASS()
 class TPSPROJECT_API ABossCubeAIController : public AAIController
 {
 	GENERATED_BODY()
 
+	
 public:
 	// 보스가 플레이어를 길찾기 대상으로 추적할 때 사용할 기본 값을 만든다.
 	ABossCubeAIController();
@@ -27,6 +38,10 @@ public:
 	// Blueprint나 디버그 표시에서 현재 보스 AI 상태를 읽는다.
 	UFUNCTION(BlueprintPure, Category = "Boss|State")
 	EBossCubeAIState GetCurrentState() const;
+
+	// Blueprint나 AnimBP에서 점프 내려찍기의 세부 애니메이션 구간을 읽는다.
+	UFUNCTION(BlueprintPure, Category = "Boss|State")
+	EBossJumpSlamAnimState GetJumpSlamAnimState() const;
 
 protected:
 	// 보스 Pawn을 조종하기 시작하면 플레이어 추적 갱신을 시작한다.
@@ -45,10 +60,15 @@ private:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Boss|State", meta = (AllowPrivateAccess = "true"))
 	EBossCubeAIState CurrentState = EBossCubeAIState::Chase;
 
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Boss|State", meta = (AllowPrivateAccess = "true"))
+	EBossJumpSlamAnimState JumpSlamAnimState = EBossJumpSlamAnimState::None;
+
 	FTimerHandle ChaseTimerHandle;
 	FTimerHandle MeleeAttackTimerHandle;
+	FTimerHandle JumpSlamStartTimerHandle;
 	FTimerHandle JumpSlamMoveTimerHandle;
 	FTimerHandle JumpSlamLandTimerHandle;
+	FTimerHandle JumpSlamFinishTimerHandle;
 	float LastMeleeAttackTime = -1000.0f;
 	float LastJumpSlamAttackTime = -1000.0f;
 	float JumpSlamElapsedTime = 0.0f;
@@ -76,6 +96,9 @@ private:
 
 	// 발동 시점의 플레이어 위치를 고정하고 점프 내려찍기 이동을 시작한다.
 	void StartJumpSlamAttack(const APawn* PlayerPawn);
+
+	// 점프 시작 애니메이션 구간이 끝나면 공중 이동 구간으로 전환한다.
+	void BeginJumpSlamInAirMovement();
 
 	// 점프 중 보스와 플레이어가 겹칠 수 있게 Pawn 채널 충돌 응답을 Overlap으로 바꾼다.
 	void EnableJumpSlamOverlapCollision();

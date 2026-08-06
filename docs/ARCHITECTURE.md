@@ -31,6 +31,7 @@
   - `PlayerWraithAnimInstance.h`, `PlayerWraithAnimInstance.cpp`: Wraith 이동 로코모션과 조준 애니메이션 값 제공용 AnimInstance
   - `BossCubeCharacter.h`, `BossCubeCharacter.cpp`: 길찾기 추적 이동 검증용 보스 Character
   - `BossCubeAIController.h`, `BossCubeAIController.cpp`: 보스가 플레이어를 길찾기 이동 대상으로 갱신하는 AIController
+  - `BossCubeAnimInstance.h`, `BossCubeAnimInstance.cpp`: 보스 FSM 상태를 AnimBP에서 읽을 값으로 제공하는 AnimInstance
 
 
 ## 권장 파일 배치

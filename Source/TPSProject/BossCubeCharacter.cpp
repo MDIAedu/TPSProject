@@ -17,6 +17,7 @@ ABossCubeCharacter::ABossCubeCharacter()
 
 	BossVisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BossVisualMesh"));
 	BossVisualMesh->SetupAttachment(GetRootComponent());
+
 	BossVisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, -30.0f));
 	BossVisualMesh->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
 	BossVisualMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -62,6 +63,16 @@ float ABossCubeCharacter::GetJumpSlamChance() const
 float ABossCubeCharacter::GetJumpSlamDuration() const
 {
 	return JumpSlamDuration;
+}
+
+float ABossCubeCharacter::GetJumpSlamStartAnimDuration() const
+{
+	return JumpSlamStartAnimDuration;
+}
+
+float ABossCubeCharacter::GetJumpSlamLandAnimDuration() const
+{
+	return JumpSlamLandAnimDuration;
 }
 
 float ABossCubeCharacter::GetJumpSlamDamageRadius() const

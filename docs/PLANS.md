@@ -21,6 +21,7 @@
 | 01-11 | [Tasks/01-11_boss_cube_chase_movement.md](../Tasks/01-11_boss_cube_chase_movement.md) | 보스 큐브의 길찾기 기반 플레이어 추적 이동 검증 | 완료 |
 | 01-12 | [Tasks/01-12_boss_melee_attack_state.md](../Tasks/01-12_boss_melee_attack_state.md) | 보스의 근접 일반 공격 상태 전환 검증 | 완료 |
 | 01-13 | [Tasks/01-13_boss_jump_slam_attack.md](../Tasks/01-13_boss_jump_slam_attack.md) | 보스의 거리 기반 점프 내려찍기 공격 검증 | 완료 |
+| 01-14 | [Tasks/01-14_boss_fsm_animation_state.md](../Tasks/01-14_boss_fsm_animation_state.md) | 보스 FSM 상태에 맞는 애니메이션 상태 전환 검증 | 진행중 |
 
 ## 상태 범례
 
@@ -38,3 +39,6 @@
 - 2026-08-05: 01-13 점프 중 Overlap 피격 시 즉시 피해를 주고, 점프 피해를 받은 플레이어는 충돌 여부와 상관없이 밀려나도록 판정 순서 보정.
 - 2026-08-05: 01-13 점프 중 Overlap 피해 후 밀려난 경우에도 착지 디버그 원과 로그가 점프 공격 피해 기준으로 표시되도록 보정.
 - 2026-08-05: 01-13 사용자 결과 확인 완료, task 상태 완료 처리.
+- 2026-08-06: 사용자 요청에 따라 01-14 보스 FSM 상태에 맞는 애니메이션 상태 전환 검증 task 문서 작성.
+- 2026-08-06: 01-14 `UBossCubeAnimInstance`를 추가해 보스 FSM 상태를 AnimBP에서 읽을 값으로 노출하고 사용자 결과 확인 대기.
+- 2026-08-06: 01-14 점프 내려찍기 애니메이션 구간을 시작, 공중, 착지 상태로 나누고 AnimBP 노출 값과 타이밍 조정값을 추가.

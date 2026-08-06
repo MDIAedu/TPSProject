@@ -22,6 +22,11 @@ EBossCubeAIState ABossCubeAIController::GetCurrentState() const
 	return CurrentState;
 }
 
+EBossJumpSlamAnimState ABossCubeAIController::GetJumpSlamAnimState() const
+{
+	return JumpSlamAnimState;
+}
+
 void ABossCubeAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -51,8 +56,10 @@ void ABossCubeAIController::OnUnPossess()
 	{
 		World->GetTimerManager().ClearTimer(ChaseTimerHandle);
 		World->GetTimerManager().ClearTimer(MeleeAttackTimerHandle);
+		World->GetTimerManager().ClearTimer(JumpSlamStartTimerHandle);
 		World->GetTimerManager().ClearTimer(JumpSlamMoveTimerHandle);
 		World->GetTimerManager().ClearTimer(JumpSlamLandTimerHandle);
+		World->GetTimerManager().ClearTimer(JumpSlamFinishTimerHandle);
 	}
 
 	Super::OnUnPossess();
@@ -133,6 +140,7 @@ void ABossCubeAIController::StartMeleeAttack(APawn* PlayerPawn)
 	}
 
 	CurrentState = EBossCubeAIState::MeleeAttack;
+	JumpSlamAnimState = EBossJumpSlamAnimState::None;
 	LastMeleeAttackTime = World->GetTimeSeconds();
 	StopMovement();
 
@@ -166,6 +174,7 @@ void ABossCubeAIController::StartMeleeAttack(APawn* PlayerPawn)
 void ABossCubeAIController::FinishMeleeAttack()
 {
 	CurrentState = EBossCubeAIState::Chase;
+	JumpSlamAnimState = EBossJumpSlamAnimState::None;
 	UE_LOG(LogTemp, Log, TEXT("BossCubeAIController: Melee attack finished. Return to chase."));
 	UpdateChaseTarget();
 }
@@ -219,6 +228,7 @@ void ABossCubeAIController::StartJumpSlamAttack(const APawn* PlayerPawn)
 	}
 
 	CurrentState = EBossCubeAIState::JumpSlamAttack;
+	JumpSlamAnimState = EBossJumpSlamAnimState::Start;
 	LastJumpSlamAttackTime = World->GetTimeSeconds();
 	JumpSlamElapsedTime = 0.0f;
 	JumpSlamStartLocation = ControlledPawn->GetActorLocation();
@@ -230,13 +240,49 @@ void ABossCubeAIController::StartJumpSlamAttack(const APawn* PlayerPawn)
 	EnableJumpSlamOverlapCollision();
 
 	const ABossCubeCharacter* BossCharacter = Cast<ABossCubeCharacter>(ControlledPawn);
+	const float StartAnimDuration = BossCharacter ? BossCharacter->GetJumpSlamStartAnimDuration() : 0.2f;
+
+	UE_LOG(
+		LogTemp,
+		Log,
+		TEXT("BossCubeAIController: Jump slam started. LockedLanding=%s. StartAnimDuration=%.2f."),
+		*LockedJumpSlamLandingLocation.ToCompactString(),
+		StartAnimDuration
+	);
+
+	if (StartAnimDuration <= 0.0f)
+	{
+		BeginJumpSlamInAirMovement();
+		return;
+	}
+
+	World->GetTimerManager().SetTimer(
+		JumpSlamStartTimerHandle,
+		this,
+		&ABossCubeAIController::BeginJumpSlamInAirMovement,
+		StartAnimDuration,
+		false
+	);
+}
+
+void ABossCubeAIController::BeginJumpSlamInAirMovement()
+{
+	UWorld* World = GetWorld();
+	APawn* ControlledPawn = GetPawn();
+	if (!World || !ControlledPawn || CurrentState != EBossCubeAIState::JumpSlamAttack)
+	{
+		return;
+	}
+
+	JumpSlamAnimState = EBossJumpSlamAnimState::InAir;
+
+	const ABossCubeCharacter* BossCharacter = Cast<ABossCubeCharacter>(ControlledPawn);
 	const float JumpDuration = BossCharacter ? BossCharacter->GetJumpSlamDuration() : 0.8f;
 
 	UE_LOG(
 		LogTemp,
 		Log,
-		TEXT("BossCubeAIController: Jump slam started. LockedLanding=%s. Duration=%.2f."),
-		*LockedJumpSlamLandingLocation.ToCompactString(),
+		TEXT("BossCubeAIController: Jump slam in-air movement started. Duration=%.2f."),
 		JumpDuration
 	);
 
@@ -405,6 +451,7 @@ void ABossCubeAIController::ResolveJumpSlamAttack()
 
 	World->GetTimerManager().ClearTimer(JumpSlamMoveTimerHandle);
 	ControlledPawn->SetActorLocation(LockedJumpSlamLandingLocation, false);
+	JumpSlamAnimState = EBossJumpSlamAnimState::Land;
 	ApplyJumpSlamDamageFromOverlap();
 
 	ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
@@ -450,7 +497,20 @@ void ABossCubeAIController::ResolveJumpSlamAttack()
 		*LockedJumpSlamLandingLocation.ToCompactString()
 	);
 
-	FinishJumpSlamAttack();
+	const float LandAnimDuration = BossCharacter->GetJumpSlamLandAnimDuration();
+	if (LandAnimDuration <= 0.0f)
+	{
+		FinishJumpSlamAttack();
+		return;
+	}
+
+	World->GetTimerManager().SetTimer(
+		JumpSlamFinishTimerHandle,
+		this,
+		&ABossCubeAIController::FinishJumpSlamAttack,
+		LandAnimDuration,
+		false
+	);
 }
 
 void ABossCubeAIController::FinishJumpSlamAttack()
@@ -459,11 +519,14 @@ void ABossCubeAIController::FinishJumpSlamAttack()
 
 	if (UWorld* World = GetWorld())
 	{
+		World->GetTimerManager().ClearTimer(JumpSlamStartTimerHandle);
 		World->GetTimerManager().ClearTimer(JumpSlamMoveTimerHandle);
 		World->GetTimerManager().ClearTimer(JumpSlamLandTimerHandle);
+		World->GetTimerManager().ClearTimer(JumpSlamFinishTimerHandle);
 	}
 
 	CurrentState = EBossCubeAIState::Chase;
+	JumpSlamAnimState = EBossJumpSlamAnimState::None;
 	UE_LOG(LogTemp, Log, TEXT("BossCubeAIController: Jump slam finished. Return to chase."));
 	UpdateChaseTarget();
 }
