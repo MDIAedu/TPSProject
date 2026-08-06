@@ -32,6 +32,7 @@
   - `BossCubeCharacter.h`, `BossCubeCharacter.cpp`: 길찾기 추적 이동 검증용 보스 Character
   - `BossCubeAIController.h`, `BossCubeAIController.cpp`: 보스가 플레이어를 길찾기 이동 대상으로 갱신하는 AIController
   - `BossCubeAnimInstance.h`, `BossCubeAnimInstance.cpp`: 보스 FSM 상태를 AnimBP에서 읽을 값으로 제공하는 AnimInstance
+  - `BossBattleArenaActor.h`, `BossBattleArenaActor.cpp`: 원형 보스 전투장의 바닥, 외곽 Mesh, 충돌 경계를 수치 기반으로 구성하는 Actor
 
 
 ## 권장 파일 배치

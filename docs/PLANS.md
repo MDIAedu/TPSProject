@@ -22,6 +22,7 @@
 | 01-12 | [Tasks/01-12_boss_melee_attack_state.md](../Tasks/01-12_boss_melee_attack_state.md) | 보스의 근접 일반 공격 상태 전환 검증 | 완료 |
 | 01-13 | [Tasks/01-13_boss_jump_slam_attack.md](../Tasks/01-13_boss_jump_slam_attack.md) | 보스의 거리 기반 점프 내려찍기 공격 검증 | 완료 |
 | 01-14 | [Tasks/01-14_boss_fsm_animation_state.md](../Tasks/01-14_boss_fsm_animation_state.md) | 보스 FSM 상태에 맞는 애니메이션 상태 전환 검증 | 완료 |
+| 01-15 | [Tasks/01-15_circular_boss_battle_arena.md](../Tasks/01-15_circular_boss_battle_arena.md) | 산과 절벽으로 둘러싸인 원형 보스 전투장 검증 | 진행중 |
 
 ## 상태 범례
 
@@ -43,3 +44,5 @@
 - 2026-08-06: 01-14 `UBossCubeAnimInstance`를 추가해 보스 FSM 상태를 AnimBP에서 읽을 값으로 노출하고 사용자 결과 확인 대기.
 - 2026-08-06: 01-14 점프 내려찍기 애니메이션 구간을 시작, 공중, 착지 상태로 나누고 AnimBP 노출 값과 타이밍 조정값을 추가.
 - 2026-08-06: 01-14 사용자 결과 확인 완료, task 상태 완료 처리.
+- 2026-08-06: 사용자 요청에 따라 01-15 산과 절벽으로 둘러싸인 원형 보스 전투장 검증 task 문서 작성.
+- 2026-08-06: 01-15 `ABossBattleArenaActor`를 추가해 원형 전투장 바닥, 외곽 Static Mesh 링, 충돌 경계를 수치 기반으로 구성하고 사용자 결과 확인 대기.
