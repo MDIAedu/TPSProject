@@ -287,3 +287,73 @@
 - 체력, 피해량, 쿨타임, 탄창 크기, 보스 공격 간격을 플레이 감각에 맞게 조정한다.
 - 마감 전 점검: 전투가 처음부터 끝까지 끊기지 않는지, 승리/패배가 정상 작동하는지, HUD 수치가 실제 게임 상태와 맞는지 확인한다.
 - 제출용 플레이 가능한 프로토타입 빌드를 준비한다.
+
+---
+
+## 추가 도구 — ComfyUI 기반 Texture 생성 EUW
+
+### Task T-1 — ComfyUI API 연결 검증
+
+#### 원하는 동작
+- Unreal Editor에서 로컬 ComfyUI 서버에 workflow 요청을 보내고 응답을 확인한다.
+
+#### 세부 설명
+- ComfyUI 서버는 로컬에서 실행 중인 것으로 전제한다.
+- 기본 주소는 `http://127.0.0.1:8188`로 두되, 나중에 바꿀 수 있는 설정값으로 둔다.
+- 준비된 workflow JSON 파일을 읽어 `/prompt` 요청을 보낼 수 있는지 확인한다.
+- 이 task에서는 UI와 Texture import는 다루지 않고, Unreal Editor에서 ComfyUI 요청이 성공하는지만 검증한다.
+
+### Task T-2 — workflow JSON 입력값 치환
+
+#### 원하는 동작
+- 준비된 ComfyUI workflow 파일에서 긍정 프롬프트와 이미지 크기 값을 Unreal 쪽 입력값으로 바꿔 요청한다.
+
+#### 세부 설명
+- positive prompt 값을 치환할 node id와 input key를 명시적으로 관리한다.
+- width, height 값을 치환할 node id와 input key를 명시적으로 관리한다.
+- seed, negative prompt, batch count는 필요하면 추가할 수 있도록 구조만 열어 둔다.
+- workflow 구조가 맞지 않을 때는 에러 메시지로 어떤 node/key가 문제인지 확인할 수 있게 한다.
+
+### Task T-3 — Texture 생성용 Editor Utility Widget UI
+
+#### 원하는 동작
+- Editor Utility Widget에서 프롬프트, 이미지 크기, workflow 파일, 저장 폴더를 설정하고 이미지 생성 버튼을 누를 수 있다.
+
+#### 세부 설명
+- UI 입력 항목은 positive prompt, width, height, workflow 파일 경로, Unreal Content 저장 폴더를 기본으로 둔다.
+- `이미지 만들기` 버튼을 누르면 현재 입력값으로 ComfyUI 생성 요청을 시작한다.
+- 생성 중, 성공, 실패 상태를 위젯에서 확인할 수 있게 한다.
+- 이 task에서는 생성 결과를 Texture asset으로 import하는 단계는 아직 다루지 않는다.
+
+### Task T-4 — ComfyUI 생성 완료 대기와 결과 이미지 확인
+
+#### 원하는 동작
+- ComfyUI에 요청한 이미지 생성이 끝날 때까지 Unreal Editor에서 상태를 확인하고, 생성된 이미지 파일 경로를 얻는다.
+
+#### 세부 설명
+- prompt id를 기준으로 ComfyUI history 또는 queue 상태를 확인한다.
+- 생성 완료 전까지 일정 간격으로 polling한다.
+- 생성이 완료되면 output 이미지 파일 이름과 경로를 찾아낸다.
+- 실패, timeout, 결과 이미지 없음 상황을 구분해서 메시지로 표시한다.
+
+### Task T-5 — 생성 이미지를 Unreal Texture asset으로 import
+
+#### 원하는 동작
+- ComfyUI가 만든 이미지 파일을 지정한 Unreal Content 폴더에 Texture2D `.uasset`으로 import한다.
+
+#### 세부 설명
+- 예시 저장 위치는 `/Game/GeneratedTextures`로 둔다.
+- 이미지 파일은 Unreal에서 사용할 수 있는 Texture2D asset으로 import한다.
+- asset 이름은 중복되지 않게 자동 생성하거나 입력값 기반 prefix를 사용한다.
+- import 후 sRGB, compression, mip 설정처럼 필요한 Texture 기본 설정을 적용할 수 있게 한다.
+
+### Task T-6 — EUW 전체 흐름 통합과 에러 처리
+
+#### 원하는 동작
+- EUW에서 입력값 설정, ComfyUI 이미지 생성, 결과 확인, Texture asset import까지 한 번에 실행된다.
+
+#### 세부 설명
+- `이미지 만들기` 버튼 하나로 전체 흐름이 이어지게 한다.
+- 성공 시 생성된 Texture asset 경로를 표시하고 Content Browser에서 찾을 수 있게 한다.
+- ComfyUI 미실행, workflow 파일 없음, node id 불일치, 생성 실패, import 실패를 각각 구분해 안내한다.
+- 첫 구현은 고정 workflow 기반으로 검증하고, 여러 workflow preset 관리는 후속 개선으로 남긴다.
