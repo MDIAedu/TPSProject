@@ -7,12 +7,12 @@
     - 현재 task의 범위가 너무 클 때
 
 ## 원하는 동작
-- 준비된 ComfyUI workflow 파일에서 긍정 프롬프트와 이미지 크기 값을 Unreal 쪽 입력값으로 바꿔 요청한다.
+- Editor Utility Widget에서 프롬프트, 이미지 크기, workflow 파일, 저장 폴더를 설정하고 이미지 생성 버튼을 누를 수 있다.
 
 ## 세부 설명
-- positive prompt 값을 치환할 node id와 input key를 명시적으로 관리한다.
-- width, height 값을 치환할 node id와 input key를 명시적으로 관리한다.
-- seed, negative prompt, batch count는 필요하면 추가할 수 있도록 구조만 열어 둔다.
-- workflow 구조가 맞지 않을 때는 에러 메시지로 어떤 node/key가 문제인지 확인할 수 있게 한다.
+- UI 입력 항목은 positive prompt, width, height, workflow 파일 경로, Unreal Content 저장 폴더를 기본으로 둔다.
+- `이미지 만들기` 버튼을 누르면 현재 입력값으로 ComfyUI 생성 요청을 시작한다.
+- 생성 중, 성공, 실패 상태를 위젯에서 확인할 수 있게 한다.
+- 이 task에서는 생성 결과를 Texture asset으로 import하는 단계는 아직 다루지 않는다.
 
 
