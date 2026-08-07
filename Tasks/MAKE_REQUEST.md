@@ -7,12 +7,12 @@
     - 현재 task의 범위가 너무 클 때
 
 ## 원하는 동작
-- Unreal Editor에서 로컬 ComfyUI 서버에 workflow 요청을 보내고 응답을 확인한다.
+- 준비된 ComfyUI workflow 파일에서 긍정 프롬프트와 이미지 크기 값을 Unreal 쪽 입력값으로 바꿔 요청한다.
 
 ## 세부 설명
-- ComfyUI 서버는 로컬에서 실행 중인 것으로 전제한다.
-- 기본 주소는 `http://127.0.0.1:8188`이다.
-- 준비된 workflow JSON 파일을 읽어 `/prompt` 요청을 보낼 수 있는지 확인한다.
-- 이 task에서는 UI와 Texture import는 다루지 않고, Unreal Editor에서 ComfyUI 요청이 성공하는지만 검증한다.
+- positive prompt 값을 치환할 node id와 input key를 명시적으로 관리한다.
+- width, height 값을 치환할 node id와 input key를 명시적으로 관리한다.
+- seed, negative prompt, batch count는 필요하면 추가할 수 있도록 구조만 열어 둔다.
+- workflow 구조가 맞지 않을 때는 에러 메시지로 어떤 node/key가 문제인지 확인할 수 있게 한다.
 
 

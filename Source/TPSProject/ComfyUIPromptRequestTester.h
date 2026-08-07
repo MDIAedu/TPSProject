@@ -6,7 +6,23 @@
 #include "GameFramework/Actor.h"
 #include "HttpFwd.h"
 #include "UObject/SoftObjectPath.h"
+
+class FJsonObject;
+class FJsonValue;
+
 #include "ComfyUIPromptRequestTester.generated.h"
+
+USTRUCT(BlueprintType)
+struct FComfyUIWorkflowInputTarget
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Overrides")
+	FString NodeId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Overrides")
+	FString InputKey;
+};
 
 UCLASS()
 class TPSPROJECT_API AComfyUIPromptRequestTester : public AActor
@@ -28,6 +44,24 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Request", meta = (AllowPrivateAccess = "true"))
 	FFilePath WorkflowJsonFilePath;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Overrides", meta = (AllowPrivateAccess = "true", MultiLine = "true"))
+	FString PositivePrompt;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Overrides", meta = (AllowPrivateAccess = "true"))
+	FComfyUIWorkflowInputTarget PositivePromptTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Overrides", meta = (AllowPrivateAccess = "true", ClampMin = "1"))
+	int32 ImageWidth = 1024;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Overrides", meta = (AllowPrivateAccess = "true", ClampMin = "1"))
+	int32 ImageHeight = 1024;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Overrides", meta = (AllowPrivateAccess = "true"))
+	FComfyUIWorkflowInputTarget ImageWidthTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Overrides", meta = (AllowPrivateAccess = "true"))
+	FComfyUIWorkflowInputTarget ImageHeightTarget;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComfyUI|Result", meta = (AllowPrivateAccess = "true"))
 	bool bRequestInProgress = false;
 
@@ -45,6 +79,30 @@ private:
 
 	// 파일 경로와 JSON 형식을 확인한 뒤 ComfyUI /prompt 요청 본문을 만든다.
 	bool BuildPromptRequestBody(FString& OutRequestBody);
+
+	// 요청 직전에 에디터 입력값으로 workflow의 지정 input 값을 치환한다.
+	bool ApplyWorkflowInputOverrides(const TSharedPtr<FJsonObject>& RequestObject);
+
+	// 긍정 프롬프트 치환 대상을 설정값 또는 workflow 연결 구조에서 찾는다.
+	bool ResolvePositivePromptTarget(const TSharedPtr<FJsonObject>& PromptObject, FComfyUIWorkflowInputTarget& OutTarget);
+
+	// 특정 class_type과 input key를 가진 workflow 치환 대상을 설정값 또는 자동 탐색으로 찾는다.
+	bool ResolveClassInputTarget(const TSharedPtr<FJsonObject>& PromptObject, const FComfyUIWorkflowInputTarget& ConfiguredTarget, const FString& Label, const FString& ClassType, const FString& InputKey, FComfyUIWorkflowInputTarget& OutTarget);
+
+	// 사용자가 node id와 input key를 모두 비웠는지 확인한다.
+	bool IsWorkflowInputTargetEmpty(const FComfyUIWorkflowInputTarget& Target) const;
+
+	// 사용자가 node id와 input key를 모두 입력했는지 확인한다.
+	bool IsWorkflowInputTargetComplete(const FComfyUIWorkflowInputTarget& Target) const;
+
+	// 문자열 입력값을 지정한 workflow node/input에 반영한다.
+	bool ApplyStringWorkflowInputOverride(const TSharedPtr<FJsonObject>& PromptObject, const FComfyUIWorkflowInputTarget& Target, const FString& NewValue, const FString& Label);
+
+	// 숫자 입력값을 지정한 workflow node/input에 반영한다.
+	bool ApplyNumberWorkflowInputOverride(const TSharedPtr<FJsonObject>& PromptObject, const FComfyUIWorkflowInputTarget& Target, int32 NewValue, const FString& Label);
+
+	// 지정한 workflow node/input이 존재하는지 확인하고 inputs object를 가져온다.
+	bool FindWorkflowInputsObject(const TSharedPtr<FJsonObject>& PromptObject, const FComfyUIWorkflowInputTarget& Target, const FString& Label, TSharedPtr<FJsonObject>& OutInputsObject);
 
 	// ComfyUI 화면 저장 workflow를 /prompt API에서 받는 prompt Object로 변환한다.
 	bool ConvertUiWorkflowToApiPrompt(const TSharedPtr<FJsonObject>& UiWorkflowObject, TSharedPtr<FJsonObject>& OutPromptObject) const;

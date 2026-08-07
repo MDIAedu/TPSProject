@@ -11,3 +11,4 @@
 - 2026-08-05: 01-12에서 `ABossCubeAIController`에 추적 상태와 근접 일반 공격 상태를 함께 유지했고, 01-13에서 점프 내려찍기 상태, 점프 중 충돌 응답 전환, 플레이어 밀어내기도 같은 FSM에 추가했다. 현재는 추적/공격 전환과 점프 충돌 보정이 같은 보스 의사결정 흐름이라 유지하지만, 공격 패턴·피해 처리·넉백·애니메이션 연동이 더 늘어나면 별도 보스 전투 컴포넌트나 상태 클래스 분리를 재검토한다.
 - 2026-08-06: 01-14에서 `EBossCubeAIState` enum을 `ABossCubeAIController` 헤더에 유지한 채 `UBossCubeAnimInstance`가 해당 상태를 읽도록 했다. 현재는 변경 범위를 줄이기 위해 유지하지만, 보스 상태를 AIController 외부 시스템이 더 많이 공유하게 되면 공용 타입 헤더로 분리할지 재검토한다.
 - 2026-08-06: 01-15에서 `ABossBattleArenaActor`가 중앙 바닥, 외곽 Static Mesh 링, 플레이 경계 충돌을 함께 구성하도록 했다. 현재는 원형 전투장 검증을 위해 유지하지만, 전투장 연출, 스폰, 입장 봉쇄, 여러 맵 재사용이 늘어나면 시각 경계와 플레이 경계 또는 전투장 진행 관리 Actor 분리를 재검토한다.
+- 2026-08-07: 01-17에서 `AComfyUIPromptRequestTester`에 HTTP 요청, workflow 파일 해석, UI workflow 변환, 입력값 치환 검증을 함께 유지했다. 현재는 에디터 요청 검증 Actor의 요청 직전 가공 범위라 유지하지만, ComfyUI 연동이 이미지 다운로드, Texture import, 런타임 요청, 여러 workflow preset 관리로 커지면 workflow 변환/치환 helper나 별도 서비스 클래스로 분리할지 재검토한다.

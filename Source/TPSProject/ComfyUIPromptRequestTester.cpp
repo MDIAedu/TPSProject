@@ -100,6 +100,7 @@ bool AComfyUIPromptRequestTester::BuildPromptRequestBody(FString& OutRequestBody
 	}
 
 	const TSharedPtr<FJsonObject> RootObject = RootValue->AsObject();
+	TSharedPtr<FJsonObject> RequestObject;
 	if (RootObject.IsValid() && RootObject->HasTypedField<EJson::Array>(TEXT("nodes")) && RootObject->HasTypedField<EJson::Array>(TEXT("links")) && !RootObject->HasField(TEXT("prompt")))
 	{
 		TSharedPtr<FJsonObject> ConvertedPromptObject;
@@ -111,20 +112,10 @@ bool AComfyUIPromptRequestTester::BuildPromptRequestBody(FString& OutRequestBody
 
 		const TSharedPtr<FJsonObject> ConvertedRequestObject = MakeShared<FJsonObject>();
 		ConvertedRequestObject->SetObjectField(TEXT("prompt"), ConvertedPromptObject);
-
-		const TSharedRef<TJsonWriter<>> ConvertedWriter = TJsonWriterFactory<>::Create(&OutRequestBody);
-		if (!FJsonSerializer::Serialize(ConvertedRequestObject.ToSharedRef(), ConvertedWriter))
-		{
-			SetFailureResult(TEXT("ComfyUI UI workflow 변환 결과를 요청 본문으로 만들 수 없습니다."));
-			return false;
-		}
-
+		RequestObject = ConvertedRequestObject;
 		UE_LOG(LogComfyUIPromptRequestTester, Display, TEXT("ComfyUI UI workflow JSON을 /prompt API 포맷으로 변환했습니다: %s"), *FullPath);
-		return true;
 	}
-
-	TSharedPtr<FJsonObject> RequestObject;
-	if (RootObject.IsValid() && RootObject->HasField(TEXT("prompt")))
+	else if (RootObject.IsValid() && RootObject->HasField(TEXT("prompt")))
 	{
 		RequestObject = RootObject;
 	}
@@ -134,6 +125,11 @@ bool AComfyUIPromptRequestTester::BuildPromptRequestBody(FString& OutRequestBody
 		RequestObject->SetField(TEXT("prompt"), RootValue);
 	}
 
+	if (!ApplyWorkflowInputOverrides(RequestObject))
+	{
+		return false;
+	}
+
 	const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutRequestBody);
 	if (!FJsonSerializer::Serialize(RequestObject.ToSharedRef(), Writer))
 	{
@@ -141,6 +137,264 @@ bool AComfyUIPromptRequestTester::BuildPromptRequestBody(FString& OutRequestBody
 		return false;
 	}
 
+	return true;
+}
+
+bool AComfyUIPromptRequestTester::ApplyWorkflowInputOverrides(const TSharedPtr<FJsonObject>& RequestObject)
+{
+	if (!RequestObject.IsValid())
+	{
+		SetFailureResult(TEXT("ComfyUI 요청 본문이 유효하지 않아 workflow 입력값을 치환할 수 없습니다."));
+		return false;
+	}
+
+	const TSharedPtr<FJsonObject>* PromptObjectPtr = nullptr;
+	if (!RequestObject->TryGetObjectField(TEXT("prompt"), PromptObjectPtr) || !PromptObjectPtr || !PromptObjectPtr->IsValid())
+	{
+		SetFailureResult(TEXT("ComfyUI 요청 본문의 prompt Object를 찾을 수 없어 workflow 입력값을 치환할 수 없습니다."));
+		return false;
+	}
+
+	const TSharedPtr<FJsonObject>& PromptObject = *PromptObjectPtr;
+	FComfyUIWorkflowInputTarget ResolvedPositivePromptTarget;
+	if (!ResolvePositivePromptTarget(PromptObject, ResolvedPositivePromptTarget))
+	{
+		return false;
+	}
+
+	FComfyUIWorkflowInputTarget ResolvedImageWidthTarget;
+	if (!ResolveClassInputTarget(PromptObject, ImageWidthTarget, TEXT("이미지 width"), TEXT("EmptyLatentImage"), TEXT("width"), ResolvedImageWidthTarget))
+	{
+		return false;
+	}
+
+	FComfyUIWorkflowInputTarget ResolvedImageHeightTarget;
+	if (!ResolveClassInputTarget(PromptObject, ImageHeightTarget, TEXT("이미지 height"), TEXT("EmptyLatentImage"), TEXT("height"), ResolvedImageHeightTarget))
+	{
+		return false;
+	}
+
+	if (!ApplyStringWorkflowInputOverride(PromptObject, ResolvedPositivePromptTarget, PositivePrompt, TEXT("긍정 프롬프트")))
+	{
+		return false;
+	}
+	if (!ApplyNumberWorkflowInputOverride(PromptObject, ResolvedImageWidthTarget, ImageWidth, TEXT("이미지 width")))
+	{
+		return false;
+	}
+	if (!ApplyNumberWorkflowInputOverride(PromptObject, ResolvedImageHeightTarget, ImageHeight, TEXT("이미지 height")))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool AComfyUIPromptRequestTester::ResolvePositivePromptTarget(const TSharedPtr<FJsonObject>& PromptObject, FComfyUIWorkflowInputTarget& OutTarget)
+{
+	if (IsWorkflowInputTargetComplete(PositivePromptTarget))
+	{
+		OutTarget = PositivePromptTarget;
+		return true;
+	}
+
+	if (!IsWorkflowInputTargetEmpty(PositivePromptTarget))
+	{
+		SetFailureResult(TEXT("긍정 프롬프트 치환 대상 설정은 node id와 input key를 모두 입력하거나 모두 비워야 합니다."));
+		return false;
+	}
+
+	if (!PromptObject.IsValid())
+	{
+		SetFailureResult(TEXT("긍정 프롬프트 치환 대상을 자동으로 찾을 수 없습니다. prompt Object가 유효하지 않습니다."));
+		return false;
+	}
+
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& NodePair : PromptObject->Values)
+	{
+		const TSharedPtr<FJsonObject>* NodeObjectPtr = nullptr;
+		if (!NodePair.Value.IsValid() || !NodePair.Value->TryGetObject(NodeObjectPtr) || !NodeObjectPtr || !NodeObjectPtr->IsValid())
+		{
+			continue;
+		}
+
+		FString ClassType;
+		if (!(*NodeObjectPtr)->TryGetStringField(TEXT("class_type"), ClassType) || ClassType != TEXT("KSampler"))
+		{
+			continue;
+		}
+
+		const TSharedPtr<FJsonObject>* InputsObjectPtr = nullptr;
+		if (!(*NodeObjectPtr)->TryGetObjectField(TEXT("inputs"), InputsObjectPtr) || !InputsObjectPtr || !InputsObjectPtr->IsValid())
+		{
+			continue;
+		}
+
+		const TArray<TSharedPtr<FJsonValue>>* PositiveLinkValues = nullptr;
+		if (!(*InputsObjectPtr)->TryGetArrayField(TEXT("positive"), PositiveLinkValues) || !PositiveLinkValues || PositiveLinkValues->Num() == 0 || !(*PositiveLinkValues)[0].IsValid())
+		{
+			continue;
+		}
+
+		const FString PositiveNodeId = (*PositiveLinkValues)[0]->AsString();
+		const TSharedPtr<FJsonObject>* PositiveNodeObjectPtr = nullptr;
+		if (!PromptObject->TryGetObjectField(PositiveNodeId, PositiveNodeObjectPtr) || !PositiveNodeObjectPtr || !PositiveNodeObjectPtr->IsValid())
+		{
+			continue;
+		}
+
+		const TSharedPtr<FJsonObject>* PositiveInputsObjectPtr = nullptr;
+		if ((*PositiveNodeObjectPtr)->TryGetObjectField(TEXT("inputs"), PositiveInputsObjectPtr) && PositiveInputsObjectPtr && PositiveInputsObjectPtr->IsValid() && (*PositiveInputsObjectPtr)->HasField(TEXT("text")))
+		{
+			OutTarget.NodeId = PositiveNodeId;
+			OutTarget.InputKey = TEXT("text");
+			UE_LOG(LogComfyUIPromptRequestTester, Display, TEXT("긍정 프롬프트 치환 대상을 자동으로 찾았습니다. node id: %s / input key: text"), *PositiveNodeId);
+			return true;
+		}
+	}
+
+	return ResolveClassInputTarget(PromptObject, PositivePromptTarget, TEXT("긍정 프롬프트"), TEXT("CLIPTextEncode"), TEXT("text"), OutTarget);
+}
+
+bool AComfyUIPromptRequestTester::ResolveClassInputTarget(const TSharedPtr<FJsonObject>& PromptObject, const FComfyUIWorkflowInputTarget& ConfiguredTarget, const FString& Label, const FString& ClassType, const FString& InputKey, FComfyUIWorkflowInputTarget& OutTarget)
+{
+	if (IsWorkflowInputTargetComplete(ConfiguredTarget))
+	{
+		OutTarget = ConfiguredTarget;
+		return true;
+	}
+
+	if (!IsWorkflowInputTargetEmpty(ConfiguredTarget))
+	{
+		SetFailureResult(FString::Printf(TEXT("%s 치환 대상 설정은 node id와 input key를 모두 입력하거나 모두 비워야 합니다."), *Label));
+		return false;
+	}
+
+	if (!PromptObject.IsValid())
+	{
+		SetFailureResult(FString::Printf(TEXT("%s 치환 대상을 자동으로 찾을 수 없습니다. prompt Object가 유효하지 않습니다."), *Label));
+		return false;
+	}
+
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& NodePair : PromptObject->Values)
+	{
+		const TSharedPtr<FJsonObject>* NodeObjectPtr = nullptr;
+		if (!NodePair.Value.IsValid() || !NodePair.Value->TryGetObject(NodeObjectPtr) || !NodeObjectPtr || !NodeObjectPtr->IsValid())
+		{
+			continue;
+		}
+
+		FString FoundClassType;
+		if (!(*NodeObjectPtr)->TryGetStringField(TEXT("class_type"), FoundClassType) || FoundClassType != ClassType)
+		{
+			continue;
+		}
+
+		const TSharedPtr<FJsonObject>* InputsObjectPtr = nullptr;
+		if ((*NodeObjectPtr)->TryGetObjectField(TEXT("inputs"), InputsObjectPtr) && InputsObjectPtr && InputsObjectPtr->IsValid() && (*InputsObjectPtr)->HasField(InputKey))
+		{
+			OutTarget.NodeId = NodePair.Key;
+			OutTarget.InputKey = InputKey;
+			UE_LOG(LogComfyUIPromptRequestTester, Display, TEXT("%s 치환 대상을 자동으로 찾았습니다. node id: %s / input key: %s"), *Label, *NodePair.Key, *InputKey);
+			return true;
+		}
+	}
+
+	SetFailureResult(FString::Printf(TEXT("%s 치환 대상을 자동으로 찾을 수 없습니다. class_type: %s / input key: %s"), *Label, *ClassType, *InputKey));
+	return false;
+}
+
+bool AComfyUIPromptRequestTester::IsWorkflowInputTargetEmpty(const FComfyUIWorkflowInputTarget& Target) const
+{
+	FString CleanNodeId = Target.NodeId;
+	CleanNodeId.TrimStartAndEndInline();
+
+	FString CleanInputKey = Target.InputKey;
+	CleanInputKey.TrimStartAndEndInline();
+
+	return CleanNodeId.IsEmpty() && CleanInputKey.IsEmpty();
+}
+
+bool AComfyUIPromptRequestTester::IsWorkflowInputTargetComplete(const FComfyUIWorkflowInputTarget& Target) const
+{
+	FString CleanNodeId = Target.NodeId;
+	CleanNodeId.TrimStartAndEndInline();
+
+	FString CleanInputKey = Target.InputKey;
+	CleanInputKey.TrimStartAndEndInline();
+
+	return !CleanNodeId.IsEmpty() && !CleanInputKey.IsEmpty();
+}
+
+bool AComfyUIPromptRequestTester::ApplyStringWorkflowInputOverride(const TSharedPtr<FJsonObject>& PromptObject, const FComfyUIWorkflowInputTarget& Target, const FString& NewValue, const FString& Label)
+{
+	TSharedPtr<FJsonObject> InputsObject;
+	if (!FindWorkflowInputsObject(PromptObject, Target, Label, InputsObject))
+	{
+		return false;
+	}
+
+	FString CleanInputKey = Target.InputKey;
+	CleanInputKey.TrimStartAndEndInline();
+	InputsObject->SetStringField(CleanInputKey, NewValue);
+	return true;
+}
+
+bool AComfyUIPromptRequestTester::ApplyNumberWorkflowInputOverride(const TSharedPtr<FJsonObject>& PromptObject, const FComfyUIWorkflowInputTarget& Target, int32 NewValue, const FString& Label)
+{
+	TSharedPtr<FJsonObject> InputsObject;
+	if (!FindWorkflowInputsObject(PromptObject, Target, Label, InputsObject))
+	{
+		return false;
+	}
+
+	FString CleanInputKey = Target.InputKey;
+	CleanInputKey.TrimStartAndEndInline();
+	InputsObject->SetNumberField(CleanInputKey, NewValue);
+	return true;
+}
+
+bool AComfyUIPromptRequestTester::FindWorkflowInputsObject(const TSharedPtr<FJsonObject>& PromptObject, const FComfyUIWorkflowInputTarget& Target, const FString& Label, TSharedPtr<FJsonObject>& OutInputsObject)
+{
+	FString CleanNodeId = Target.NodeId;
+	CleanNodeId.TrimStartAndEndInline();
+
+	FString CleanInputKey = Target.InputKey;
+	CleanInputKey.TrimStartAndEndInline();
+
+	if (CleanNodeId.IsEmpty() || CleanInputKey.IsEmpty())
+	{
+		SetFailureResult(FString::Printf(TEXT("%s 치환 대상 설정이 비어 있습니다. node id와 input key를 모두 지정하세요."), *Label));
+		return false;
+	}
+
+	if (!PromptObject.IsValid())
+	{
+		SetFailureResult(FString::Printf(TEXT("%s 치환 실패. prompt Object가 유효하지 않습니다. node id: %s / input key: %s"), *Label, *CleanNodeId, *CleanInputKey));
+		return false;
+	}
+
+	const TSharedPtr<FJsonObject>* NodeObjectPtr = nullptr;
+	if (!PromptObject->TryGetObjectField(CleanNodeId, NodeObjectPtr) || !NodeObjectPtr || !NodeObjectPtr->IsValid())
+	{
+		SetFailureResult(FString::Printf(TEXT("%s 치환 실패. workflow prompt에서 node id를 찾을 수 없습니다. node id: %s / input key: %s"), *Label, *CleanNodeId, *CleanInputKey));
+		return false;
+	}
+
+	const TSharedPtr<FJsonObject>* InputsObjectPtr = nullptr;
+	if (!(*NodeObjectPtr)->TryGetObjectField(TEXT("inputs"), InputsObjectPtr) || !InputsObjectPtr || !InputsObjectPtr->IsValid())
+	{
+		SetFailureResult(FString::Printf(TEXT("%s 치환 실패. workflow node에 inputs Object가 없습니다. node id: %s / input key: %s"), *Label, *CleanNodeId, *CleanInputKey));
+		return false;
+	}
+
+	if (!(*InputsObjectPtr)->HasField(CleanInputKey))
+	{
+		SetFailureResult(FString::Printf(TEXT("%s 치환 실패. workflow node inputs에서 input key를 찾을 수 없습니다. node id: %s / input key: %s"), *Label, *CleanNodeId, *CleanInputKey));
+		return false;
+	}
+
+	OutInputsObject = *InputsObjectPtr;
 	return true;
 }
 

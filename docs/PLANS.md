@@ -23,7 +23,8 @@
 | 01-13 | [Tasks/01-13_boss_jump_slam_attack.md](../Tasks/01-13_boss_jump_slam_attack.md) | 보스의 거리 기반 점프 내려찍기 공격 검증 | 완료 |
 | 01-14 | [Tasks/01-14_boss_fsm_animation_state.md](../Tasks/01-14_boss_fsm_animation_state.md) | 보스 FSM 상태에 맞는 애니메이션 상태 전환 검증 | 완료 |
 | 01-15 | [Tasks/01-15_circular_boss_battle_arena.md](../Tasks/01-15_circular_boss_battle_arena.md) | 산과 절벽으로 둘러싸인 원형 보스 전투장 검증 | 완료 |
-| 01-16 | [Tasks/01-16_editor_comfyui_prompt_request.md](../Tasks/01-16_editor_comfyui_prompt_request.md) | Unreal Editor에서 로컬 ComfyUI workflow 요청 검증 | 진행중 |
+| 01-16 | [Tasks/01-16_editor_comfyui_prompt_request.md](../Tasks/01-16_editor_comfyui_prompt_request.md) | Unreal Editor에서 로컬 ComfyUI workflow 요청 검증 | 완료 |
+| 01-17 | [Tasks/01-17_comfyui_workflow_input_overrides.md](../Tasks/01-17_comfyui_workflow_input_overrides.md) | ComfyUI workflow 요청 전 긍정 프롬프트와 이미지 크기 입력값 치환 검증 | 진행중 |
 
 ## 상태 범례
 
@@ -40,3 +41,6 @@
 - 2026-08-07: 01-16 ComfyUI UI workflow JSON을 감지해 API 포맷 workflow JSON이 필요하다는 실패 메시지를 출력하도록 보정.
 - 2026-08-07: 01-16 ComfyUI UI workflow JSON의 `nodes`/`links`를 기본 `/prompt` API 요청 본문으로 변환하도록 보정.
 - 2026-08-07: 01-16 ComfyUI UI workflow 변환 매핑에 `UNETLoader`, `CLIPLoader`, `DualCLIPLoader`, `TripleCLIPLoader` 위젯 입력을 추가.
+- 2026-08-07: 사용자 요청에 따라 01-17 ComfyUI workflow 입력값 치환 검증 task 문서 작성.
+- 2026-08-07: 01-17 `AComfyUIPromptRequestTester`에 긍정 프롬프트와 이미지 크기 workflow 입력값 치환 및 node/key 오류 메시지를 추가하고 사용자 결과 확인 대기.
+- 2026-08-07: 01-17 workflow의 `KSampler` positive 연결과 `EmptyLatentImage` 입력을 읽어 치환 대상을 자동 탐색하고 수동 target은 override로만 쓰도록 보정.
