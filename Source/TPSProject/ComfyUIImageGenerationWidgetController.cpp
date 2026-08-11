@@ -9,15 +9,29 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Misc/FileHelper.h"
+#include "Misc/PackageName.h"
 #include "Misc/Paths.h"
+#include "Modules/ModuleManager.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+
+#if WITH_EDITOR
+#include "AssetImportTask.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetToolsModule.h"
+#include "DesktopPlatformModule.h"
+#include "Factories/TextureFactory.h"
+#include "Framework/Application/SlateApplication.h"
+#include "IDesktopPlatform.h"
+#include "UObject/Package.h"
+#include "UObject/SavePackage.h"
+#endif
 
 DEFINE_LOG_CATEGORY_STATIC(LogComfyUIImageGenerationWidgetController, Log, All);
 
 UComfyUIImageGenerationWidgetController::UComfyUIImageGenerationWidgetController()
 {
-	ContentSaveFolder.Path = TEXT("/Game/GeneratedImages");
+	ContentSaveFolder.Path = TEXT("/Game/GeneratedTextures");
 }
 
 void UComfyUIImageGenerationWidgetController::CreateImage()
@@ -34,10 +48,10 @@ void UComfyUIImageGenerationWidgetController::CreateImage()
 		return;
 	}
 
-	FString SaveFolderFullPath;
-	if (!ResolveContentSaveFolderFullPath(SaveFolderFullPath))
+	FString TextureDestinationPath;
+	if (!ResolveContentSaveFolderPackagePath(TextureDestinationPath))
 	{
-		SetFailureResult(TEXT("Unreal Content 저장 폴더는 /Game 하위 경로여야 합니다."));
+		SetFailureResult(TEXT("Texture import 폴더는 /Game 하위 경로여야 합니다."));
 		return;
 	}
 
@@ -68,6 +82,7 @@ void UComfyUIImageGenerationWidgetController::CreateImage()
 	LastHttpStatusCode = 0;
 	LastPromptId.Reset();
 	LastSavedImagePath.Reset();
+	LastImportedTextureAssetPath.Reset();
 	LastResponseBody.Reset();
 	HistoryPollAttempts = 0;
 	LastStatusMessage = FString::Printf(TEXT("ComfyUI 이미지 생성 요청 전송 중: %s"), *EndpointUrl);
@@ -93,9 +108,223 @@ void UComfyUIImageGenerationWidgetController::ResetGenerationState()
 	LastHttpStatusCode = 0;
 	LastPromptId.Reset();
 	LastSavedImagePath.Reset();
+	LastImportedTextureAssetPath.Reset();
 	LastStatusMessage.Reset();
 	LastResponseBody.Reset();
 	HistoryPollAttempts = 0;
+}
+
+bool UComfyUIImageGenerationWidgetController::ImportLastSavedImageAsTexture()
+{
+	if (LastSavedImagePath.IsEmpty())
+	{
+		SetFailureResult(TEXT("Texture로 import할 저장 이미지 파일 경로가 없습니다."));
+		return false;
+	}
+
+	return ImportImageFileAsTexture(LastSavedImagePath);
+}
+
+bool UComfyUIImageGenerationWidgetController::ImportImageFileAsTexture(const FString& ImageFilePath)
+{
+	LastImportedTextureAssetPath.Reset();
+
+#if WITH_EDITOR
+	FString CleanImageFilePath = ImageFilePath;
+	CleanImageFilePath.TrimStartAndEndInline();
+	FPaths::NormalizeFilename(CleanImageFilePath);
+
+	if (CleanImageFilePath.IsEmpty())
+	{
+		SetFailureResult(TEXT("Texture로 import할 이미지 파일 경로가 비어 있습니다."));
+		return false;
+	}
+
+	if (!IFileManager::Get().FileExists(*CleanImageFilePath))
+	{
+		SetFailureResult(FString::Printf(TEXT("Texture로 import할 이미지 파일을 찾을 수 없습니다: %s"), *CleanImageFilePath));
+		return false;
+	}
+
+	FString DestinationPath;
+	if (!ResolveContentSaveFolderPackagePath(DestinationPath))
+	{
+		SetFailureResult(TEXT("Texture import 폴더는 /Game 하위 경로여야 합니다."));
+		return false;
+	}
+
+	const FString AssetNameBase = BuildTextureAssetNameBase(CleanImageFilePath);
+	const FString BasePackageName = DestinationPath / AssetNameBase;
+
+	FString UniquePackageName;
+	FString UniqueAssetName;
+	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"));
+	AssetToolsModule.Get().CreateUniqueAssetName(BasePackageName, TEXT(""), UniquePackageName, UniqueAssetName);
+
+	UTextureFactory* TextureFactory = NewObject<UTextureFactory>();
+	TextureFactory->AddToRoot();
+
+	UAssetImportTask* ImportTask = NewObject<UAssetImportTask>();
+	ImportTask->Filename = CleanImageFilePath;
+	ImportTask->DestinationPath = DestinationPath;
+	ImportTask->DestinationName = UniqueAssetName;
+	ImportTask->Factory = TextureFactory;
+	ImportTask->bAutomated = true;
+	ImportTask->bSave = false;
+	ImportTask->bReplaceExisting = false;
+
+	TArray<UAssetImportTask*> ImportTasks;
+	ImportTasks.Add(ImportTask);
+	AssetToolsModule.Get().ImportAssetTasks(ImportTasks);
+
+	TextureFactory->RemoveFromRoot();
+
+	if (ImportTask->ImportedObjectPaths.Num() == 0)
+	{
+		SetFailureResult(FString::Printf(TEXT("Texture2D asset import에 실패했습니다: %s"), *CleanImageFilePath));
+		return false;
+	}
+
+	UTexture2D* ImportedTexture = nullptr;
+	for (const FString& ImportedObjectPath : ImportTask->ImportedObjectPaths)
+	{
+		ImportedTexture = Cast<UTexture2D>(StaticLoadObject(UTexture2D::StaticClass(), nullptr, *ImportedObjectPath));
+		if (ImportedTexture)
+		{
+			LastImportedTextureAssetPath = ImportedObjectPath;
+			break;
+		}
+	}
+
+	if (!ImportedTexture)
+	{
+		SetFailureResult(TEXT("import 결과에서 Texture2D asset을 찾을 수 없습니다."));
+		return false;
+	}
+
+	ApplyImportedTextureSettings(ImportedTexture);
+	ImportedTexture->MarkPackageDirty();
+
+	FAssetRegistryModule::AssetCreated(ImportedTexture);
+
+	UPackage* Package = ImportedTexture->GetOutermost();
+	const FString PackageFileName = FPackageName::LongPackageNameToFilename(Package->GetName(), FPackageName::GetAssetPackageExtension());
+	FSavePackageArgs SaveArgs;
+	SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+	SaveArgs.SaveFlags = SAVE_NoError;
+
+	if (!UPackage::SavePackage(Package, ImportedTexture, *PackageFileName, SaveArgs))
+	{
+		SetFailureResult(FString::Printf(TEXT("Texture2D asset 저장에 실패했습니다: %s"), *LastImportedTextureAssetPath));
+		return false;
+	}
+
+	SetSuccessResult(FString::Printf(TEXT("Texture2D asset import 완료: %s"), *LastImportedTextureAssetPath));
+	return true;
+#else
+	SetFailureResult(TEXT("Texture2D import는 Unreal Editor에서만 사용할 수 있습니다."));
+	return false;
+#endif
+}
+
+bool UComfyUIImageGenerationWidgetController::SelectWorkflowJsonFile(FString& OutFilePath)
+{
+	OutFilePath.Reset();
+
+#if WITH_EDITOR
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+	if (!DesktopPlatform)
+	{
+		return false;
+	}
+
+	TArray<FString> SelectedFiles;
+	const FString DefaultPath = FPaths::ProjectDir();
+	const void* ParentWindowHandle = FSlateApplication::IsInitialized() && FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr)
+		? FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr)
+		: nullptr;
+
+	const bool bSelected = DesktopPlatform->OpenFileDialog(
+		ParentWindowHandle,
+		TEXT("Select ComfyUI Workflow JSON"),
+		DefaultPath,
+		TEXT(""),
+		TEXT("JSON files (*.json)|*.json|All files (*.*)|*.*"),
+		EFileDialogFlags::None,
+		SelectedFiles);
+
+	if (!bSelected || SelectedFiles.Num() == 0)
+	{
+		return false;
+	}
+
+	OutFilePath = SelectedFiles[0];
+	FPaths::NormalizeFilename(OutFilePath);
+	return true;
+#else
+	return false;
+#endif
+}
+
+bool UComfyUIImageGenerationWidgetController::SelectContentSaveFolder(FString& OutContentFolderPath)
+{
+	OutContentFolderPath.Reset();
+
+#if WITH_EDITOR
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+	if (!DesktopPlatform)
+	{
+		return false;
+	}
+
+	FString SelectedFolder;
+	const FString ContentDir = FPaths::ProjectContentDir();
+	const void* ParentWindowHandle = FSlateApplication::IsInitialized() && FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr)
+		? FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr)
+		: nullptr;
+
+	const bool bSelected = DesktopPlatform->OpenDirectoryDialog(
+		ParentWindowHandle,
+		TEXT("Select Unreal Content Save Folder"),
+		ContentDir,
+		SelectedFolder);
+
+	if (!bSelected || SelectedFolder.IsEmpty())
+	{
+		return false;
+	}
+
+	FPaths::NormalizeDirectoryName(SelectedFolder);
+	FString NormalizedContentDir = ContentDir;
+	FPaths::NormalizeDirectoryName(NormalizedContentDir);
+
+	if (SelectedFolder == NormalizedContentDir)
+	{
+		OutContentFolderPath = TEXT("/Game");
+		return true;
+	}
+
+	FString RelativeFolder = SelectedFolder;
+	if (!FPaths::MakePathRelativeTo(RelativeFolder, *NormalizedContentDir))
+	{
+		SetFailureResult(TEXT("선택한 저장 폴더는 프로젝트 Content 폴더 안에 있어야 합니다."));
+		return false;
+	}
+
+	FPaths::NormalizeFilename(RelativeFolder);
+	FPaths::CollapseRelativeDirectories(RelativeFolder);
+	RelativeFolder.RemoveFromStart(TEXT("Content/"));
+	if (RelativeFolder.IsEmpty() || RelativeFolder.StartsWith(TEXT("..")))
+	{
+		SetFailureResult(TEXT("선택한 저장 폴더는 프로젝트 Content 폴더 안에 있어야 합니다."));
+		return false;
+	}
+
+	OutContentFolderPath = FString::Printf(TEXT("/Game/%s"), *RelativeFolder);
+	return true;
+#else
+	return false;
+#endif
 }
 
 bool UComfyUIImageGenerationWidgetController::BuildPromptRequestBody(FString& OutRequestBody)
@@ -691,6 +920,7 @@ bool UComfyUIImageGenerationWidgetController::ResolveContentSaveFolderFullPath(F
 	if (CleanFolder.StartsWith(TEXT("/Game/")))
 	{
 		CleanFolder.RightChopInline(6);
+		CleanFolder.RemoveFromStart(TEXT("Content/"));
 	}
 	else if (CleanFolder.StartsWith(TEXT("Content/")))
 	{
@@ -710,6 +940,93 @@ bool UComfyUIImageGenerationWidgetController::ResolveContentSaveFolderFullPath(F
 	OutFullPath = FPaths::Combine(FPaths::ProjectContentDir(), CleanFolder);
 	FPaths::NormalizeFilename(OutFullPath);
 	return true;
+}
+
+bool UComfyUIImageGenerationWidgetController::ResolveContentSaveFolderPackagePath(FString& OutPackagePath) const
+{
+	FString CleanFolder = ContentSaveFolder.Path;
+	CleanFolder.TrimStartAndEndInline();
+	FPaths::NormalizeFilename(CleanFolder);
+
+	if (CleanFolder.IsEmpty())
+	{
+		CleanFolder = TEXT("/Game/GeneratedTextures");
+	}
+
+	if (CleanFolder == TEXT("/Game"))
+	{
+		OutPackagePath = CleanFolder;
+		return true;
+	}
+
+	if (CleanFolder.StartsWith(TEXT("Content/")))
+	{
+		CleanFolder.RightChopInline(8);
+		CleanFolder = FString::Printf(TEXT("/Game/%s"), *CleanFolder);
+	}
+
+	if (!CleanFolder.StartsWith(TEXT("/Game/")))
+	{
+		return false;
+	}
+
+	FPaths::CollapseRelativeDirectories(CleanFolder);
+	if (CleanFolder.Contains(TEXT("..")))
+	{
+		return false;
+	}
+
+	CleanFolder.RemoveFromEnd(TEXT("/"));
+	OutPackagePath = CleanFolder;
+	return FPackageName::IsValidLongPackageName(OutPackagePath);
+}
+
+FString UComfyUIImageGenerationWidgetController::BuildTextureAssetNameBase(const FString& ImageFilePath) const
+{
+	FString Prefix = TextureAssetNamePrefix;
+	Prefix.TrimStartAndEndInline();
+	if (Prefix.IsEmpty())
+	{
+		Prefix = TEXT("T_ComfyUI");
+	}
+
+	FString SourceName = FPaths::GetBaseFilename(ImageFilePath);
+	SourceName.TrimStartAndEndInline();
+	if (SourceName.IsEmpty())
+	{
+		SourceName = TEXT("Image");
+	}
+
+	FString AssetName = FString::Printf(TEXT("%s_%s"), *Prefix, *SourceName);
+	for (TCHAR& Character : AssetName)
+	{
+		if (!FChar::IsAlnum(Character) && Character != TEXT('_'))
+		{
+			Character = TEXT('_');
+		}
+	}
+
+	if (AssetName.IsEmpty())
+	{
+		AssetName = TEXT("T_ComfyUI_Image");
+	}
+
+	return AssetName;
+}
+
+void UComfyUIImageGenerationWidgetController::ApplyImportedTextureSettings(UTexture2D* Texture) const
+{
+	if (!Texture)
+	{
+		return;
+	}
+
+	Texture->SRGB = bImportedTextureSRGB;
+	Texture->CompressionSettings = ImportedTextureCompressionSettings;
+	Texture->MipGenSettings = ImportedTextureMipGenSettings;
+#if WITH_EDITOR
+	Texture->PostEditChange();
+#endif
 }
 
 FString UComfyUIImageGenerationWidgetController::BuildEndpointUrl(const FString& ApiPath) const
@@ -887,26 +1204,30 @@ void UComfyUIImageGenerationWidgetController::HandleImageDownloadResponse(FHttpR
 		return;
 	}
 
-	FString SaveFolderFullPath;
-	if (!ResolveContentSaveFolderFullPath(SaveFolderFullPath))
-	{
-		SetFailureResult(TEXT("Unreal Content 저장 폴더는 /Game 하위 경로여야 합니다."));
-		return;
-	}
-
-	IFileManager::Get().MakeDirectory(*SaveFolderFullPath, true);
-
 	const FString CleanFileName = FPaths::GetCleanFilename(FileName);
-	LastSavedImagePath = FPaths::Combine(SaveFolderFullPath, CleanFileName);
+	const FString TempFolderFullPath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("ComfyUITextureImport"));
+	IFileManager::Get().MakeDirectory(*TempFolderFullPath, true);
+
+	LastSavedImagePath = FPaths::Combine(TempFolderFullPath, CleanFileName);
 	FPaths::NormalizeFilename(LastSavedImagePath);
 
 	if (!FFileHelper::SaveArrayToFile(Response->GetContent(), *LastSavedImagePath))
 	{
-		SetFailureResult(FString::Printf(TEXT("생성 이미지 파일 저장에 실패했습니다: %s"), *LastSavedImagePath));
+		SetFailureResult(FString::Printf(TEXT("Texture import용 임시 이미지 파일 저장에 실패했습니다: %s"), *LastSavedImagePath));
 		return;
 	}
 
-	SetSuccessResult(FString::Printf(TEXT("ComfyUI 생성 이미지 저장 완료: %s"), *LastSavedImagePath));
+	const FString TempImagePath = LastSavedImagePath;
+	const bool bImported = ImportImageFileAsTexture(TempImagePath);
+	IFileManager::Get().Delete(*TempImagePath, false, true);
+
+	if (!bImported)
+	{
+		LastSavedImagePath.Reset();
+		return;
+	}
+
+	LastSavedImagePath.Reset();
 }
 
 void UComfyUIImageGenerationWidgetController::ScheduleNextHistoryPoll()

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/Texture.h"
 #include "HttpFwd.h"
 #include "UObject/Object.h"
 #include "UObject/SoftObjectPath.h"
@@ -50,6 +51,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ComfyUI")
 	void ResetGenerationState();
 
+	// Editor Utility Widget에서 workflow JSON 파일 선택 창을 열고 선택한 파일 경로를 반환한다.
+	UFUNCTION(BlueprintCallable, Category = "ComfyUI|Editor")
+	bool SelectWorkflowJsonFile(FString& OutFilePath);
+
+	// Editor Utility Widget에서 Content 하위 저장 폴더 선택 창을 열고 /Game 경로를 반환한다.
+	UFUNCTION(BlueprintCallable, Category = "ComfyUI|Editor")
+	bool SelectContentSaveFolder(FString& OutContentFolderPath);
+
+	// 저장된 이미지 파일을 지정한 Content 폴더에 Texture2D asset으로 import한다.
+	UFUNCTION(BlueprintCallable, Category = "ComfyUI|Texture Import")
+	bool ImportLastSavedImageAsTexture();
+
+	// 지정한 이미지 파일을 지정한 Content 폴더에 Texture2D asset으로 import한다.
+	UFUNCTION(BlueprintCallable, Category = "ComfyUI|Texture Import")
+	bool ImportImageFileAsTexture(const FString& ImageFilePath);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ComfyUI|Request")
 	FString ServerBaseUrl = TEXT("http://127.0.0.1:8188");
 
@@ -77,6 +94,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ComfyUI|Overrides")
 	FComfyUIImageWorkflowInputTarget ImageHeightTarget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ComfyUI|Texture Import")
+	FString TextureAssetNamePrefix = TEXT("T_ComfyUI");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ComfyUI|Texture Import")
+	bool bImportedTextureSRGB = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ComfyUI|Texture Import")
+	TEnumAsByte<TextureCompressionSettings> ImportedTextureCompressionSettings = TC_Default;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ComfyUI|Texture Import")
+	TEnumAsByte<TextureMipGenSettings> ImportedTextureMipGenSettings = TMGS_FromTextureGroup;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComfyUI|Result")
 	EComfyUIImageGenerationState GenerationState = EComfyUIImageGenerationState::Idle;
 
@@ -94,6 +123,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComfyUI|Result")
 	FString LastSavedImagePath;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComfyUI|Result")
+	FString LastImportedTextureAssetPath;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComfyUI|Result")
 	FString LastStatusMessage;
@@ -143,6 +175,15 @@ private:
 
 	// Content 저장 폴더를 실제 저장 경로로 변환한다.
 	bool ResolveContentSaveFolderFullPath(FString& OutFullPath) const;
+
+	// Content 저장 폴더를 Texture import 대상 /Game 경로로 정리한다.
+	bool ResolveContentSaveFolderPackagePath(FString& OutPackagePath) const;
+
+	// Texture asset 이름 후보를 Content Browser에서 사용할 수 있는 이름으로 정리한다.
+	FString BuildTextureAssetNameBase(const FString& ImageFilePath) const;
+
+	// import된 Texture2D에 기본 Texture 설정을 적용한다.
+	void ApplyImportedTextureSettings(class UTexture2D* Texture) const;
 
 	// 서버 주소와 API 경로를 결합한다.
 	FString BuildEndpointUrl(const FString& ApiPath) const;

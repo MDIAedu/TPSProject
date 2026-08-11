@@ -34,7 +34,7 @@
   - `BossCubeAnimInstance.h`, `BossCubeAnimInstance.cpp`: 보스 FSM 상태를 AnimBP에서 읽을 값으로 제공하는 AnimInstance
   - `BossBattleArenaActor.h`, `BossBattleArenaActor.cpp`: 원형 보스 전투장의 바닥, 외곽 Mesh, 충돌 경계를 수치 기반으로 구성하는 Actor
   - `ComfyUIPromptRequestTester.h`, `ComfyUIPromptRequestTester.cpp`: Unreal Editor에서 로컬 ComfyUI workflow `/prompt` 요청을 검증하는 Actor
-  - `ComfyUIImageGenerationWidgetController.h`, `ComfyUIImageGenerationWidgetController.cpp`: Editor Utility Widget에서 ComfyUI 이미지 생성 요청, history 조회, 결과 이미지 파일 저장을 실행하는 UObject
+  - `ComfyUIImageGenerationWidgetController.h`, `ComfyUIImageGenerationWidgetController.cpp`: Editor Utility Widget에서 ComfyUI 이미지 생성 요청, history 조회, 결과 이미지 파일 저장, workflow 파일과 Content 저장 폴더 선택, 생성 이미지 Texture2D import를 실행하는 UObject
 
 
 ## 권장 파일 배치

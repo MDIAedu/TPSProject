@@ -25,7 +25,8 @@
 | 01-15 | [Tasks/01-15_circular_boss_battle_arena.md](../Tasks/01-15_circular_boss_battle_arena.md) | 산과 절벽으로 둘러싸인 원형 보스 전투장 검증 | 완료 |
 | 01-16 | [Tasks/01-16_editor_comfyui_prompt_request.md](../Tasks/01-16_editor_comfyui_prompt_request.md) | Unreal Editor에서 로컬 ComfyUI workflow 요청 검증 | 완료 |
 | 01-17 | [Tasks/01-17_comfyui_workflow_input_overrides.md](../Tasks/01-17_comfyui_workflow_input_overrides.md) | ComfyUI workflow 요청 전 긍정 프롬프트와 이미지 크기 입력값 치환 검증 | 완료 |
-| 01-18 | [Tasks/01-18_editor_comfyui_generation_widget.md](../Tasks/01-18_editor_comfyui_generation_widget.md) | Editor Utility Widget에서 ComfyUI 이미지 생성 요청 실행 | 진행중 |
+| 01-18 | [Tasks/01-18_editor_comfyui_generation_widget.md](../Tasks/01-18_editor_comfyui_generation_widget.md) | Editor Utility Widget에서 ComfyUI 이미지 생성 요청 실행 | 완료 |
+| 01-19 | [Tasks/01-19_import_generated_image_texture.md](../Tasks/01-19_import_generated_image_texture.md) | ComfyUI 생성 이미지 파일을 Texture2D asset으로 import | 진행중 |
 
 ## 상태 범례
 
@@ -47,3 +48,8 @@
 - 2026-08-07: 01-17 workflow의 `KSampler` positive 연결과 `EmptyLatentImage` 입력을 읽어 치환 대상을 자동 탐색하고 수동 target은 override로만 쓰도록 보정.
 - 2026-08-07: 사용자 요청에 따라 01-18 Editor Utility Widget에서 ComfyUI 이미지 생성 요청을 실행하는 task 문서 작성.
 - 2026-08-07: 01-18 `UComfyUIImageGenerationWidgetController`를 추가해 위젯 입력값으로 ComfyUI 생성 요청, history 조회, 이미지 파일 저장을 실행하게 하고 사용자 결과 확인 대기.
+- 2026-08-11: 01-18 `UComfyUIImageGenerationWidgetController`에 workflow JSON 파일 선택과 Content 저장 폴더 선택 BlueprintCallable 함수를 추가.
+- 2026-08-11: 사용자 요청에 따라 01-19 ComfyUI 생성 이미지 파일을 Texture2D asset으로 import하는 task 문서 작성.
+- 2026-08-11: 01-19 `UComfyUIImageGenerationWidgetController`에 저장 이미지 Texture2D import, 중복 없는 asset 이름 생성, Texture 기본 설정 적용을 추가하고 사용자 결과 확인 대기.
+- 2026-08-11: 01-19 ComfyUI 생성 이미지 저장 직후 별도 버튼 없이 Texture2D import가 이어지도록 변경.
+- 2026-08-11: 01-19 ComfyUI 생성 원본 이미지를 Content에 남기지 않고 임시 파일을 거쳐 Content 저장 폴더에 Texture2D asset만 생성하도록 변경.

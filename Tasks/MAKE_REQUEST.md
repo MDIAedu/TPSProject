@@ -7,12 +7,12 @@
     - 현재 task의 범위가 너무 클 때
 
 ## 원하는 동작
-- Editor Utility Widget에서 프롬프트, 이미지 크기, workflow 파일, 저장 폴더를 설정하고 이미지 생성 버튼을 누를 수 있다.
+- ComfyUI가 만든 이미지 파일을 지정한 Unreal Content 폴더에 Texture2D `.uasset`으로 import한다.
 
 ## 세부 설명
-- UI 입력 항목은 positive prompt, width, height, workflow 파일 경로, Unreal Content 저장 폴더를 기본으로 둔다.
-- `이미지 만들기` 버튼을 누르면 현재 입력값으로 ComfyUI 생성 요청을 시작한다.
-- 생성 중, 성공, 실패 상태를 위젯에서 확인할 수 있게 한다.
-- 이 task에서는 생성 결과를 Texture asset으로 import하는 단계는 아직 다루지 않는다.
+- 예시 저장 위치는 `/Game/GeneratedTextures`로 둔다.
+- 이미지 파일은 Unreal에서 사용할 수 있는 Texture2D asset으로 import한다.
+- asset 이름은 중복되지 않게 자동 생성하거나 입력값 기반 prefix를 사용한다.
+- import 후 sRGB, compression, mip 설정처럼 필요한 Texture 기본 설정을 적용할 수 있게 한다.
 
 

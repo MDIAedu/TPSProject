@@ -7,7 +7,8 @@ Editor Utility Widget에서 positive prompt, 이미지 크기, workflow 파일 �
 - [x] Editor Utility Widget에서 positive prompt, width, height, workflow 파일 경로, Unreal Content 저장 폴더를 입력할 수 있다.
 - [x] `이미지 만들기` 버튼을 누르면 현재 위젯 입력값으로 ComfyUI 생성 요청을 시작한다.
 - [x] 생성 중, 성공, 실패 상태를 위젯에서 확인할 수 있다.
-- [x] 생성 결과 파일을 Unreal Content 저장 폴더 기준으로 저장할 수 있다.
+- [x] 생성 결과를 Unreal Content 저장 폴더 기준 후속 처리에 사용할 수 있다.
+- [x] Editor Utility Widget의 버튼에서 workflow JSON 파일과 Content 저장 폴더를 선택 창으로 고를 수 있다.
 
 ## 범위 밖
 - 생성 결과를 Texture asset으로 import하는 단계는 다루지 않는다.
@@ -22,7 +23,9 @@ Editor Utility Widget에서 positive prompt, 이미지 크기, workflow 파일 �
 - 위젯에 positive prompt, width, height, workflow 파일 경로, Unreal Content 저장 폴더를 입력할 UI를 만든다.
 - 위젯 변수로 `UComfyUIImageGenerationWidgetController` Object를 만들고, 각 UI 입력값을 컨트롤러의 `PositivePrompt`, `ImageWidth`, `ImageHeight`, `WorkflowJsonFilePath`, `ContentSaveFolder`에 연결한다.
 - `이미지 만들기` 버튼 클릭 이벤트에서 컨트롤러의 `CreateImage`를 호출한다.
-- 상태 표시 UI가 컨트롤러의 `GenerationState`, `LastStatusMessage`, `LastSavedImagePath`를 보여주도록 연결한다.
+- workflow JSON 파일 선택 버튼 클릭 이벤트에서 컨트롤러의 `SelectWorkflowJsonFile`을 호출하고, 반환값이 true이면 반환된 파일 경로를 workflow 경로 TextBox에 넣는다.
+- Content 저장 폴더 선택 버튼 클릭 이벤트에서 컨트롤러의 `SelectContentSaveFolder`를 호출하고, 반환값이 true이면 반환된 `/Game` 경로를 Content 저장 폴더 TextBox에 넣는다.
+- 상태 표시 UI가 컨트롤러의 `GenerationState`, `LastStatusMessage`를 보여주도록 연결한다.
 
 ## 완료 조건
 
@@ -35,8 +38,10 @@ Editor Utility Widget에서 positive prompt, 이미지 크기, workflow 파일 �
 ### 결과 확인 (구현 후 구체화)
 - Unreal Editor를 실행하고 `WBP_ComfyUIImageGenerationWidget`을 연다.
 - 위젯에서 positive prompt, width, height, workflow 파일 경로, Unreal Content 저장 폴더를 입력한다.
+- workflow JSON 파일 선택 버튼을 눌렀을 때 파일 선택 창이 열리고, 선택한 `.json` 파일 경로가 workflow 경로 입력칸에 표시되는지 확인한다.
+- Content 저장 폴더 선택 버튼을 눌렀을 때 폴더 선택 창이 열리고, 프로젝트 Content 하위 폴더 선택 시 `/Game/GeneratedTextures`처럼 `Content`가 중복되지 않은 경로가 Content 저장 폴더 입력칸에 표시되는지 확인한다.
+- 프로젝트 Content 밖의 폴더를 선택했을 때 실패 메시지가 표시되는지 확인한다.
 - 로컬 ComfyUI가 켜진 상태에서 `이미지 만들기` 버튼을 누른다.
 - 버튼 입력 후 상태 표시가 생성 중 상태와 메시지를 보여주는지 확인한다.
-- 생성이 완료되면 성공 상태와 저장된 이미지 파일 경로가 표시되는지 확인한다.
-- 지정한 Content 하위 폴더에 생성 이미지 파일이 저장됐는지 확인한다.
+- 생성이 완료되면 성공 상태와 후속 처리 결과 메시지가 표시되는지 확인한다.
 - ComfyUI 서버가 꺼져 있거나 workflow 경로가 잘못됐을 때 실패 상태와 실패 메시지가 표시되는지 확인한다.
