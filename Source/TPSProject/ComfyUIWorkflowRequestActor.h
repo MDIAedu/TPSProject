@@ -9,6 +9,9 @@
 #include "UObject/NoExportTypes.h"
 #include "ComfyUIWorkflowRequestActor.generated.h"
 
+class FJsonObject;
+class FJsonValue;
+
 UCLASS()
 class TPSPROJECT_API AComfyUIWorkflowRequestActor : public AActor
 {
@@ -90,8 +93,14 @@ private:
 	// ComfyUI UI workflow 저장본을 /prompt API가 받을 수 있는 prompt 객체로 변환한다.
 	bool TryConvertUiWorkflowToApiPrompt(const TSharedPtr<FJsonObject>& WorkflowObject, TSharedPtr<FJsonObject>& OutPromptObject);
 
+	// UI workflow에서 지정한 타입의 노드가 정확히 하나인지 확인하고 그 노드 ID를 찾는다.
+	bool TryFindSingleUiNodeIdByType(const TArray<TSharedPtr<FJsonValue>>& UiNodes, const FString& NodeType, const FString& RoleName, int32& OutNodeId);
+
 	// UI workflow 노드의 widget 값을 API prompt 입력값에 추가한다.
 	void ApplyKnownWidgetInputs(const TSharedPtr<FJsonObject>& UiNode, const TSharedRef<FJsonObject>& ApiNode, int32 ClipTextEncodeIndex, int32 EmptyLatentImageIndex);
+
+	int32 ActivePositivePromptNodeId = 0;
+	int32 ActiveImageSizeNodeId = 0;
 
 	// 요청 완료 후 성공 여부와 응답 내용을 에디터에서 확인할 수 있는 값으로 저장한다.
 	void HandlePromptResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);

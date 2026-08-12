@@ -190,6 +190,8 @@ bool AComfyUIWorkflowRequestActor::TryConvertUiWorkflowToApiPrompt(const TShared
 	LastAppliedNegativePromptNodeId = 0;
 	LastAppliedImageSizeNodeId = 0;
 	LastOverrideMessage.Empty();
+	ActivePositivePromptNodeId = 0;
+	ActiveImageSizeNodeId = 0;
 
 	const TArray<TSharedPtr<FJsonValue>>* UiNodes = nullptr;
 	const TArray<TSharedPtr<FJsonValue>>* UiLinks = nullptr;
@@ -205,6 +207,23 @@ bool AComfyUIWorkflowRequestActor::TryConvertUiWorkflowToApiPrompt(const TShared
 		int32 SourceOutputIndex = 0;
 	};
 
+	TMap<int32, FString> NodeTypeById;
+	for (const TSharedPtr<FJsonValue>& NodeValue : *UiNodes)
+	{
+		const TSharedPtr<FJsonObject> UiNode = NodeValue.IsValid() ? NodeValue->AsObject() : nullptr;
+		if (!UiNode.IsValid())
+		{
+			continue;
+		}
+
+		double NodeIdNumber = 0.0;
+		FString ClassType;
+		if (UiNode->TryGetNumberField(TEXT("id"), NodeIdNumber) && UiNode->TryGetStringField(TEXT("type"), ClassType))
+		{
+			NodeTypeById.Add(static_cast<int32>(NodeIdNumber), ClassType);
+		}
+	}
+
 	TMap<int32, FComfyLinkInfo> LinkById;
 	for (const TSharedPtr<FJsonValue>& LinkValue : *UiLinks)
 	{
@@ -219,6 +238,84 @@ bool AComfyUIWorkflowRequestActor::TryConvertUiWorkflowToApiPrompt(const TShared
 		LinkInfo.SourceNodeId = static_cast<int32>((*LinkArray)[1]->AsNumber());
 		LinkInfo.SourceOutputIndex = static_cast<int32>((*LinkArray)[2]->AsNumber());
 		LinkById.Add(LinkId, LinkInfo);
+	}
+
+	if (PositivePromptNodeId > 0)
+	{
+		ActivePositivePromptNodeId = PositivePromptNodeId;
+	}
+	else
+	{
+		int32 PositiveCandidateCount = 0;
+		int32 PositiveCandidateNodeId = 0;
+
+		for (const TSharedPtr<FJsonValue>& NodeValue : *UiNodes)
+		{
+			const TSharedPtr<FJsonObject> UiNode = NodeValue.IsValid() ? NodeValue->AsObject() : nullptr;
+			if (!UiNode.IsValid())
+			{
+				continue;
+			}
+
+			FString ClassType;
+			if (!UiNode->TryGetStringField(TEXT("type"), ClassType) || ClassType != TEXT("KSampler"))
+			{
+				continue;
+			}
+
+			const TArray<TSharedPtr<FJsonValue>>* UiInputs = nullptr;
+			if (!UiNode->TryGetArrayField(TEXT("inputs"), UiInputs))
+			{
+				continue;
+			}
+
+			for (const TSharedPtr<FJsonValue>& InputValue : *UiInputs)
+			{
+				const TSharedPtr<FJsonObject> UiInput = InputValue.IsValid() ? InputValue->AsObject() : nullptr;
+				if (!UiInput.IsValid())
+				{
+					continue;
+				}
+
+				FString InputName;
+				double LinkIdNumber = 0.0;
+				if (!UiInput->TryGetStringField(TEXT("name"), InputName) || InputName != TEXT("positive") || !UiInput->TryGetNumberField(TEXT("link"), LinkIdNumber))
+				{
+					continue;
+				}
+
+				const FComfyLinkInfo* LinkInfo = LinkById.Find(static_cast<int32>(LinkIdNumber));
+				const FString* SourceNodeType = LinkInfo ? NodeTypeById.Find(LinkInfo->SourceNodeId) : nullptr;
+				if (SourceNodeType && *SourceNodeType == TEXT("CLIPTextEncode"))
+				{
+					++PositiveCandidateCount;
+					PositiveCandidateNodeId = LinkInfo->SourceNodeId;
+				}
+			}
+		}
+
+		if (PositiveCandidateCount == 1)
+		{
+			ActivePositivePromptNodeId = PositiveCandidateNodeId;
+		}
+		else if (PositiveCandidateCount == 0 && !TryFindSingleUiNodeIdByType(*UiNodes, TEXT("CLIPTextEncode"), TEXT("긍정 프롬프트"), ActivePositivePromptNodeId))
+		{
+			return false;
+		}
+		else if (PositiveCandidateCount > 1)
+		{
+			SetFailureMessage(FString::Printf(TEXT("workflow에서 KSampler positive에 연결된 긍정 프롬프트 후보가 %d개 발견되어 자동 판단할 수 없습니다."), PositiveCandidateCount));
+			return false;
+		}
+	}
+
+	if (ImageSizeNodeId > 0)
+	{
+		ActiveImageSizeNodeId = ImageSizeNodeId;
+	}
+	else if (!TryFindSingleUiNodeIdByType(*UiNodes, TEXT("EmptyLatentImage"), TEXT("이미지 크기"), ActiveImageSizeNodeId))
+	{
+		return false;
 	}
 
 	TSharedRef<FJsonObject> PromptObject = MakeShared<FJsonObject>();
@@ -309,6 +406,51 @@ bool AComfyUIWorkflowRequestActor::TryConvertUiWorkflowToApiPrompt(const TShared
 	return true;
 }
 
+bool AComfyUIWorkflowRequestActor::TryFindSingleUiNodeIdByType(const TArray<TSharedPtr<FJsonValue>>& UiNodes, const FString& NodeType, const FString& RoleName, int32& OutNodeId)
+{
+	int32 FoundNodeCount = 0;
+	int32 FoundNodeId = 0;
+
+	for (const TSharedPtr<FJsonValue>& NodeValue : UiNodes)
+	{
+		const TSharedPtr<FJsonObject> UiNode = NodeValue.IsValid() ? NodeValue->AsObject() : nullptr;
+		if (!UiNode.IsValid())
+		{
+			continue;
+		}
+
+		FString CurrentNodeType;
+		if (!UiNode->TryGetStringField(TEXT("type"), CurrentNodeType) || CurrentNodeType != NodeType)
+		{
+			continue;
+		}
+
+		double NodeIdNumber = 0.0;
+		if (!UiNode->TryGetNumberField(TEXT("id"), NodeIdNumber))
+		{
+			continue;
+		}
+
+		++FoundNodeCount;
+		FoundNodeId = static_cast<int32>(NodeIdNumber);
+	}
+
+	if (FoundNodeCount == 1)
+	{
+		OutNodeId = FoundNodeId;
+		return true;
+	}
+
+	if (FoundNodeCount == 0)
+	{
+		SetFailureMessage(FString::Printf(TEXT("workflow에서 %s 노드(%s)를 찾지 못했습니다."), *RoleName, *NodeType));
+		return false;
+	}
+
+	SetFailureMessage(FString::Printf(TEXT("workflow에서 %s 후보 노드(%s)가 %d개 발견되어 자동 판단할 수 없습니다."), *RoleName, *NodeType, FoundNodeCount));
+	return false;
+}
+
 void AComfyUIWorkflowRequestActor::ApplyKnownWidgetInputs(const TSharedPtr<FJsonObject>& UiNode, const TSharedRef<FJsonObject>& ApiNode, int32 ClipTextEncodeIndex, int32 EmptyLatentImageIndex)
 {
 	if (!UiNode.IsValid())
@@ -359,8 +501,8 @@ void AComfyUIWorkflowRequestActor::ApplyKnownWidgetInputs(const TSharedPtr<FJson
 			TextValue = (*WidgetValues)[0]->AsString();
 		}
 
-		const bool bUseAsPositive = PositivePromptNodeId == NodeId || (PositivePromptNodeId == 0 && ClipTextEncodeIndex == 0);
-		const bool bUseAsNegative = NegativePromptNodeId == NodeId || (NegativePromptNodeId == 0 && ClipTextEncodeIndex == 1);
+		const bool bUseAsPositive = ActivePositivePromptNodeId == NodeId;
+		const bool bUseAsNegative = NegativePromptNodeId == NodeId;
 		if (bUseAsPositive && !PositivePromptText.IsEmpty())
 		{
 			TextValue = PositivePromptText;
@@ -378,7 +520,7 @@ void AComfyUIWorkflowRequestActor::ApplyKnownWidgetInputs(const TSharedPtr<FJson
 
 	if (ClassType == TEXT("EmptyLatentImage"))
 	{
-		const bool bUseAsSizeNode = ImageSizeNodeId == NodeId || (ImageSizeNodeId == 0 && EmptyLatentImageIndex == 0);
+		const bool bUseAsSizeNode = ActiveImageSizeNodeId == NodeId;
 		double WidthValue = WidgetValues->IsValidIndex(0) && (*WidgetValues)[0].IsValid() ? (*WidgetValues)[0]->AsNumber() : 512.0;
 		double HeightValue = WidgetValues->IsValidIndex(1) && (*WidgetValues)[1].IsValid() ? (*WidgetValues)[1]->AsNumber() : 512.0;
 		const double BatchSizeValue = WidgetValues->IsValidIndex(2) && (*WidgetValues)[2].IsValid() ? (*WidgetValues)[2]->AsNumber() : 1.0;
