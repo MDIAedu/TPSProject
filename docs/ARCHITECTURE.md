@@ -33,7 +33,10 @@
   - `BossCubeAIController.h`, `BossCubeAIController.cpp`: 보스가 플레이어를 길찾기 이동 대상으로 갱신하는 AIController
   - `BossCubeAnimInstance.h`, `BossCubeAnimInstance.cpp`: 보스 FSM 상태를 AnimBP에서 읽을 값으로 제공하는 AnimInstance
   - `BossBattleArenaActor.h`, `BossBattleArenaActor.cpp`: 원형 보스 전투장의 바닥, 외곽 Mesh, 충돌 경계를 수치 기반으로 구성하는 Actor
-  - `ComfyUIWorkflowRequestActor.h`, `ComfyUIWorkflowRequestActor.cpp`: Unreal Editor에서 로컬 ComfyUI workflow JSON을 `/prompt`로 요청하는 검증용 Actor
+  - `ComfyUIWorkflowRequestService.h`, `ComfyUIWorkflowRequestService.cpp`: ComfyUI workflow 변환과 HTTP 요청을 공통 처리하는 서비스
+  - `ComfyUIWorkflowRequestActor.h`, `ComfyUIWorkflowRequestActor.cpp`: 공통 요청 서비스를 Details 패널에서 실행하는 검증용 Actor
+- `Source/TPSProjectEditor/`: Unreal Editor에서만 사용하는 도구 모듈 C++ 코드
+  - `ComfyUIEditorUtilityLibrary.h`, `ComfyUIEditorUtilityLibrary.cpp`: Editor Utility Widget에 ComfyUI 요청과 서버 확인 Blueprint 노드를 제공하는 함수 라이브러리
 
 
 ## 권장 파일 배치

@@ -4,13 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Interfaces/IHttpRequest.h"
-#include "Interfaces/IHttpResponse.h"
 #include "UObject/NoExportTypes.h"
 #include "ComfyUIWorkflowRequestActor.generated.h"
 
-class FJsonObject;
-class FJsonValue;
+struct FComfyUIWorkflowRequestResult;
 
 UCLASS()
 class TPSPROJECT_API AComfyUIWorkflowRequestActor : public AActor
@@ -31,7 +28,7 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Request", meta = (AllowPrivateAccess = "true"))
-	FString ServerBaseUrl = TEXT("http://.127.0.0.1:8188");
+	FString ServerBaseUrl = TEXT("http://127.0.0.1:8188");
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComfyUI|Request", meta = (AllowPrivateAccess = "true", FilePathFilter = "JSON files (*.json)|*.json"))
 	FFilePath WorkflowJsonFile;
@@ -81,33 +78,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComfyUI|Last Override", meta = (AllowPrivateAccess = "true", MultiLine = "true"))
 	FString LastOverrideMessage;
 
-	// 서버 기본 주소와 엔드포인트 경로를 합쳐 실제 요청 URL을 만든다.
-	FString BuildComfyUrl(const FString& EndpointPath) const;
-
-	// workflow JSON 파일을 읽고 요청 본문으로 사용할 문자열을 돌려준다.
-	bool TryLoadWorkflowJson(FString& OutRequestBody);
-
-	// ComfyUI /prompt API가 기대하는 {"prompt": ...} 요청 본문을 만든다.
-	bool TryBuildPromptRequestBody(const FString& WorkflowJson, FString& OutRequestBody);
-
-	// ComfyUI UI workflow 저장본을 /prompt API가 받을 수 있는 prompt 객체로 변환한다.
-	bool TryConvertUiWorkflowToApiPrompt(const TSharedPtr<FJsonObject>& WorkflowObject, TSharedPtr<FJsonObject>& OutPromptObject);
-
-	// UI workflow에서 지정한 타입의 노드가 정확히 하나인지 확인하고 그 노드 ID를 찾는다.
-	bool TryFindSingleUiNodeIdByType(const TArray<TSharedPtr<FJsonValue>>& UiNodes, const FString& NodeType, const FString& RoleName, int32& OutNodeId);
-
-	// UI workflow 노드의 widget 값을 API prompt 입력값에 추가한다.
-	void ApplyKnownWidgetInputs(const TSharedPtr<FJsonObject>& UiNode, const TSharedRef<FJsonObject>& ApiNode, int32 ClipTextEncodeIndex, int32 EmptyLatentImageIndex);
-
-	int32 ActivePositivePromptNodeId = 0;
-	int32 ActiveImageSizeNodeId = 0;
-
-	// 요청 완료 후 성공 여부와 응답 내용을 에디터에서 확인할 수 있는 값으로 저장한다.
-	void HandlePromptResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-
-	// 서버 연결 확인 요청 완료 후 성공 여부와 응답 내용을 에디터에서 확인할 수 있는 값으로 저장한다.
-	void HandleServerCheckResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-
-	// 실패 사유를 Last Response 값과 로그에 남긴다.
-	void SetFailureMessage(const FString& FailureMessage);
+	// 공통 요청 서비스의 완료 결과를 Details 패널 확인 값에 반영한다.
+	void ApplyRequestResult(const FComfyUIWorkflowRequestResult& Result);
 };

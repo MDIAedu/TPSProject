@@ -24,7 +24,8 @@
 | 01-14 | [Tasks/01-14_boss_fsm_animation_state.md](../Tasks/01-14_boss_fsm_animation_state.md) | 보스 FSM 상태에 맞는 애니메이션 상태 전환 검증 | 완료 |
 | 01-15 | [Tasks/01-15_circular_boss_battle_arena.md](../Tasks/01-15_circular_boss_battle_arena.md) | 산과 절벽으로 둘러싸인 원형 보스 전투장 검증 | 완료 |
 | 01-16 | [Tasks/01-16_local_comfyui_workflow_request.md](../Tasks/01-16_local_comfyui_workflow_request.md) | Unreal Editor에서 로컬 ComfyUI workflow 요청 검증 | 완료 |
-| 01-17 | [Tasks/01-17_comfyui_workflow_override_nodes.md](../Tasks/01-17_comfyui_workflow_override_nodes.md) | ComfyUI workflow의 프롬프트와 이미지 크기 노드 자동 변경 검증 | 진행중 |
+| 01-17 | [Tasks/01-17_comfyui_workflow_override_nodes.md](../Tasks/01-17_comfyui_workflow_override_nodes.md) | ComfyUI workflow의 프롬프트와 이미지 크기 노드 자동 변경 검증 | 완료 |
+| 01-18 | [Tasks/01-18_comfyui_editor_utility_widget_request.md](../Tasks/01-18_comfyui_editor_utility_widget_request.md) | Editor Utility Widget에서 ComfyUI 이미지 생성 요청 검증 | 진행중 |
 
 ## 상태 범례
 
@@ -33,6 +34,8 @@
 - `완료`: 구현 및 현재 확인 모드 기준 확인 완료
 
 ## 최근 작업 로그
+- 2026-08-13: 01-18 Editor 모듈 컴파일 시 공통 서비스 헤더를 찾지 못한 문제를 수정하기 위해 `TPSProject` 모듈 루트를 공개 include 경로로 등록.
+- 2026-08-13: 01-18 ComfyUI 요청 로직을 공통 서비스로 분리하고 Editor 전용 Blueprint 함수 라이브러리를 추가해 EUW 연결 준비, 사용자 결과 확인 대기.
 - 2026-08-12: 01-16 ComfyUI UI workflow 저장본을 API prompt JSON으로 착각해 보내는 경우를 감지해 로컬 실패 메시지를 표시하도록 보정.
 - 2026-08-12: 01-16 저장된 ComfyUI UI workflow JSON을 `/prompt` API용 prompt 객체로 변환하고 프롬프트와 이미지 크기 override를 적용하도록 변경.
 - 2026-08-12: 01-16 ComfyUI 검증 응답에 맞춰 `UNETLoader`, `CLIPLoader`, `InspyrenetRembg` widget 입력 매핑을 추가.

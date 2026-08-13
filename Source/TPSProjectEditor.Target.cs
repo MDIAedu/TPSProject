@@ -10,6 +10,6 @@ public class TPSProjectEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V7;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_8;
-		ExtraModuleNames.Add("TPSProject");
+		ExtraModuleNames.AddRange(new string[] { "TPSProject", "TPSProjectEditor" });
 	}
 }
