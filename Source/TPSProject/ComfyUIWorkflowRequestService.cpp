@@ -571,6 +571,19 @@ namespace ComfyUIWorkflowRequestService
 			Result.HttpStatusCode = Response->GetResponseCode();
 			Result.ResponseMessage = Response->GetContentAsString();
 			Result.bSucceeded = Result.HttpStatusCode >= 200 && Result.HttpStatusCode < 300;
+			if (Result.bSucceeded && FCString::Strcmp(Endpoint, TEXT("/prompt")) == 0)
+			{
+				TSharedPtr<FJsonObject> ResponseObject;
+				const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Result.ResponseMessage);
+				if (!FJsonSerializer::Deserialize(Reader, ResponseObject)
+					|| !ResponseObject.IsValid()
+					|| !ResponseObject->TryGetStringField(TEXT("prompt_id"), Result.PromptId)
+					|| Result.PromptId.IsEmpty())
+				{
+					Result.bSucceeded = false;
+					Result.ResponseMessage = TEXT("ComfyUI /prompt 응답에서 prompt_id를 찾지 못했습니다.");
+				}
+			}
 			UE_LOG(LogTemp, Display, TEXT("ComfyUI %s 응답 %s - HTTP %d: %s"), Endpoint, Result.bSucceeded ? TEXT("성공") : TEXT("실패"), Result.HttpStatusCode, *Result.ResponseMessage);
 			Complete();
 		}

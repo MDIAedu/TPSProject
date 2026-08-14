@@ -25,7 +25,8 @@
 | 01-15 | [Tasks/01-15_circular_boss_battle_arena.md](../Tasks/01-15_circular_boss_battle_arena.md) | 산과 절벽으로 둘러싸인 원형 보스 전투장 검증 | 완료 |
 | 01-16 | [Tasks/01-16_local_comfyui_workflow_request.md](../Tasks/01-16_local_comfyui_workflow_request.md) | Unreal Editor에서 로컬 ComfyUI workflow 요청 검증 | 완료 |
 | 01-17 | [Tasks/01-17_comfyui_workflow_override_nodes.md](../Tasks/01-17_comfyui_workflow_override_nodes.md) | ComfyUI workflow의 프롬프트와 이미지 크기 노드 자동 변경 검증 | 완료 |
-| 01-18 | [Tasks/01-18_comfyui_editor_utility_widget_request.md](../Tasks/01-18_comfyui_editor_utility_widget_request.md) | Editor Utility Widget에서 ComfyUI 이미지 생성 요청 검증 | 진행중 |
+| 01-18 | [Tasks/01-18_comfyui_editor_utility_widget_request.md](../Tasks/01-18_comfyui_editor_utility_widget_request.md) | Editor Utility Widget에서 ComfyUI 이미지 생성 요청 검증 | 완료 |
+| 01-19 | [Tasks/01-19_comfyui_texture_auto_import.md](../Tasks/01-19_comfyui_texture_auto_import.md) | ComfyUI 생성 이미지를 Texture2D 자산으로 자동 임포트 검증 | 완료 |
 
 ## 상태 범례
 

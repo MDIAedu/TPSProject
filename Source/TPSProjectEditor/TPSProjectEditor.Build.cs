@@ -15,5 +15,13 @@ public class TPSProjectEditor : ModuleRules
 			"Engine",
 			"TPSProject"
 		});
+
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"AssetTools",
+			"HTTP",
+			"Json",
+			"UnrealEd"
+		});
 	}
 }

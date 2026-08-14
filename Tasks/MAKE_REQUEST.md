@@ -7,15 +7,11 @@
     - 현재 task의 범위가 너무 클 때
 
 ## 원하는 동작
-- Editor Utility Widget 을 이용해서 ComfyUI 에게 이미지 요청하는 기능 만들고 싶어.
+- ComfyUI 가 이미지를 만들면 자동으로 지정한 Unreal Content 폴더에 Texture2D .uasset 으로 import 되게 하고 싶어.
 
 ## 세부 설명
-- 지금은 Actor 를 월드에 배치하고 Detail 창에서 이미지 생성을 하고 있어.
-- 이것을 EUW 로 만들고 싶어.
-- 긍정 프롬프트, 이미지 넓이, 이미지 높이 를 설정할 수 있어야 해.
-- Workflow 파일 설정할 수 있어야 해.
-- 이미지 생성 버튼이 있어야 하고, 해당 버튼을 누르면 설정한 값 기반으로 ComfyUI 를 통해서 이미지가 생성되어야해.
-- EUW 위젯 구성은 내가 Editor 에서 진행할거야.
-
+- 저장 위치는 /Game/GeneratedTextures 로 둔다.
+- 이미지 파일은 Unreal 에서 사용할 수 있는 Texture2D asset 으로 import 해야 해.
+- asset 이름은 중복되지 않게 자동 생성해 줘.
 
 

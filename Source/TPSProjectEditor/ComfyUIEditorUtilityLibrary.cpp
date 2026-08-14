@@ -2,6 +2,7 @@
 
 #include "ComfyUIEditorUtilityLibrary.h"
 
+#include "ComfyUITextureImportService.h"
 #include "ComfyUIWorkflowRequestService.h"
 
 namespace ComfyUIEditorUtilityLibrary
@@ -46,9 +47,29 @@ void UComfyUIEditorUtilityLibrary::SendComfyUIWorkflowPrompt(
 
 	FOnComfyUIWorkflowRequestComplete Completion;
 	Completion.BindLambda(
-		[Completed](const FComfyUIWorkflowRequestResult& Result)
+		[Completed, ServerBaseUrl, RequestTimeoutSeconds](const FComfyUIWorkflowRequestResult& Result)
 		{
-			ComfyUIEditorUtilityLibrary::ExecuteCompleted(Completed, Result);
+			if (!Result.bSucceeded)
+			{
+				ComfyUIEditorUtilityLibrary::ExecuteCompleted(Completed, Result);
+				return;
+			}
+
+			FOnComfyUITextureImportComplete ImportCompletion;
+			ImportCompletion.BindLambda(
+				[Completed, RequestResult = Result](const FComfyUITextureImportResult& ImportResult)
+				{
+					FComfyUIWorkflowRequestResult FinalResult = RequestResult;
+					FinalResult.bSucceeded = ImportResult.bSucceeded;
+					FinalResult.HttpStatusCode = ImportResult.HttpStatusCode;
+					FinalResult.ResponseMessage = ImportResult.ResponseMessage;
+					ComfyUIEditorUtilityLibrary::ExecuteCompleted(Completed, FinalResult);
+				});
+			FComfyUITextureImportService::ImportGeneratedTextures(
+				ServerBaseUrl,
+				Result.PromptId,
+				RequestTimeoutSeconds,
+				MoveTemp(ImportCompletion));
 		});
 	FComfyUIWorkflowRequestService::SendWorkflowPrompt(Settings, MoveTemp(Completion));
 }

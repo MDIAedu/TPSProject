@@ -26,6 +26,7 @@
   - `BP_PlayerCubeCharacter.uasset`: 현재 플레이어 조작 대상 Blueprint
   - `BP_BossCubeCharacter.uasset`: 길찾기 추적 이동 검증용 보스 Blueprint
 - `Content/ParagonWraith/`: Paragon Wraith 모델, 애니메이션, 머티리얼 원본 에셋
+- `Content/GeneratedTextures/`: ComfyUI 생성 결과를 자동 임포트한 Texture2D 자산
 - `Source/TPSProject/`: 게임 모듈 C++ 코드
   - `PlayerCubeCharacter.h`, `PlayerCubeCharacter.cpp`: 플레이어 입력, 카메라, 기본 사격 검증용 Character
   - `PlayerWraithAnimInstance.h`, `PlayerWraithAnimInstance.cpp`: Wraith 이동 로코모션과 조준 애니메이션 값 제공용 AnimInstance
@@ -37,6 +38,7 @@
   - `ComfyUIWorkflowRequestActor.h`, `ComfyUIWorkflowRequestActor.cpp`: 공통 요청 서비스를 Details 패널에서 실행하는 검증용 Actor
 - `Source/TPSProjectEditor/`: Unreal Editor에서만 사용하는 도구 모듈 C++ 코드
   - `ComfyUIEditorUtilityLibrary.h`, `ComfyUIEditorUtilityLibrary.cpp`: Editor Utility Widget에 ComfyUI 요청과 서버 확인 Blueprint 노드를 제공하는 함수 라이브러리
+  - `ComfyUITextureImportService.h`, `ComfyUITextureImportService.cpp`: ComfyUI 생성 완료 조회, 결과 이미지 다운로드, Texture2D 자동 임포트를 처리하는 Editor 전용 서비스
 
 
 ## 권장 파일 배치

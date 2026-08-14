@@ -24,6 +24,7 @@ struct FComfyUIWorkflowRequestResult
 	bool bSucceeded = false;
 	int32 HttpStatusCode = 0;
 	FString ResponseMessage;
+	FString PromptId;
 	int32 AppliedPositivePromptNodeId = 0;
 	int32 AppliedNegativePromptNodeId = 0;
 	int32 AppliedImageSizeNodeId = 0;
