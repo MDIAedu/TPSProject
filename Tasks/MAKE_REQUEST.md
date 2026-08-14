@@ -7,11 +7,11 @@
     - 현재 task의 범위가 너무 클 때
 
 ## 원하는 동작
-- ComfyUI 가 이미지를 만들면 자동으로 지정한 Unreal Content 폴더에 Texture2D .uasset 으로 import 되게 하고 싶어.
+- ComfyUI 에 이미지 생성 요청을 할 때 긍정 프롬프트를 그대로 보내지말고 codex exec 를 통해서 ComfyUI 에 맞는 프롬프트를 만들어서 진행하고 싶어.
 
 ## 세부 설명
-- 저장 위치는 /Game/GeneratedTextures 로 둔다.
-- 이미지 파일은 Unreal 에서 사용할 수 있는 Texture2D asset 으로 import 해야 해.
-- asset 이름은 중복되지 않게 자동 생성해 줘.
+- ComfyUI 에서 사용하는 모델은 Flux.2 로 할거야.
+- 프롬프트는 영어로 만들어줘.
+- 프롬프트를 만들고 ComfyUI 에 요청할 때 어떤 프롬프트로 요청했는지 Output Log 창에 출력해줘.
 
 

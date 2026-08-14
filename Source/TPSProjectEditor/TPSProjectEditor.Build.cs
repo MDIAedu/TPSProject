@@ -19,6 +19,7 @@ public class TPSProjectEditor : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"AssetTools",
+			"DesktopPlatform",
 			"HTTP",
 			"Json",
 			"UnrealEd"

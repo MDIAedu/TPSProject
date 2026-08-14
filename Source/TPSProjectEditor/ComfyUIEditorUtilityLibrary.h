@@ -22,6 +22,12 @@ class TPSPROJECTEDITOR_API UComfyUIEditorUtilityLibrary : public UBlueprintFunct
 	GENERATED_BODY()
 
 public:
+	// Windows 파일 선택 창에서 ComfyUI workflow JSON 파일을 선택한다.
+	UFUNCTION(BlueprintCallable, Category = "ComfyUI|Editor Utility", meta = (DisplayName = "Open ComfyUI Workflow File Dialog"))
+	static bool OpenComfyUIWorkflowFileDialog(
+		const FString& CurrentFilePath,
+		FString& SelectedFilePath);
+
 	// Editor Utility Widget에서 입력한 값으로 ComfyUI workflow 이미지 생성 요청을 보낸다.
 	UFUNCTION(BlueprintCallable, Category = "ComfyUI|Editor Utility", meta = (DisplayName = "Send ComfyUI Workflow Prompt", AdvancedDisplay = "ServerBaseUrl,RequestTimeoutSeconds", CPP_Default_ServerBaseUrl = "http://127.0.0.1:8188", CPP_Default_RequestTimeoutSeconds = "30.0"))
 	static void SendComfyUIWorkflowPrompt(

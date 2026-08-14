@@ -70,6 +70,7 @@ namespace ComfyUIWorkflowRequestService
 					Self->HandleHttpResponse(TEXT("/prompt"), Response, bWasSuccessful);
 				});
 
+			UE_LOG(LogTemp, Display, TEXT("ComfyUI 최종 긍정 프롬프트: %s"), *Settings.PositivePromptText);
 			UE_LOG(LogTemp, Display, TEXT("ComfyUI 요청 전송 중: %s, 본문 크기: %d chars"), *PromptUrl, RequestBody.Len());
 			if (!Request->ProcessRequest())
 			{

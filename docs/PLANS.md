@@ -27,6 +27,8 @@
 | 01-17 | [Tasks/01-17_comfyui_workflow_override_nodes.md](../Tasks/01-17_comfyui_workflow_override_nodes.md) | ComfyUI workflow의 프롬프트와 이미지 크기 노드 자동 변경 검증 | 완료 |
 | 01-18 | [Tasks/01-18_comfyui_editor_utility_widget_request.md](../Tasks/01-18_comfyui_editor_utility_widget_request.md) | Editor Utility Widget에서 ComfyUI 이미지 생성 요청 검증 | 완료 |
 | 01-19 | [Tasks/01-19_comfyui_texture_auto_import.md](../Tasks/01-19_comfyui_texture_auto_import.md) | ComfyUI 생성 이미지를 Texture2D 자산으로 자동 임포트 검증 | 완료 |
+| 01-20 | [Tasks/01-20_comfyui_codex_flux2_prompt_generation.md](../Tasks/01-20_comfyui_codex_flux2_prompt_generation.md) | Codex CLI로 Flux.2용 영문 프롬프트를 생성해 ComfyUI 요청에 적용 | 진행중 |
+| 01-21 | [Tasks/01-21_comfyui_workflow_file_dialog.md](../Tasks/01-21_comfyui_workflow_file_dialog.md) | Windows 파일 선택 창에서 ComfyUI workflow JSON 경로 설정 | 진행중 |
 
 ## 상태 범례
 
@@ -35,6 +37,8 @@
 - `완료`: 구현 및 현재 확인 모드 기준 확인 완료
 
 ## 최근 작업 로그
+- 2026-08-14: 01-21 EUW에서 Windows 파일 선택 창을 열어 ComfyUI workflow JSON 전체 경로를 선택할 수 있는 Blueprint 함수 구현, 사용자 자산 연결과 결과 확인 대기.
+- 2026-08-14: 01-20 Codex CLI로 Flux.2용 영문 프롬프트를 비동기 생성한 뒤 ComfyUI 요청에 적용하고 최종 프롬프트를 Output Log에 출력하도록 구현, 사용자 결과 확인 대기.
 - 2026-08-13: 01-18 Editor 모듈 컴파일 시 공통 서비스 헤더를 찾지 못한 문제를 수정하기 위해 `TPSProject` 모듈 루트를 공개 include 경로로 등록.
 - 2026-08-13: 01-18 ComfyUI 요청 로직을 공통 서비스로 분리하고 Editor 전용 Blueprint 함수 라이브러리를 추가해 EUW 연결 준비, 사용자 결과 확인 대기.
 - 2026-08-12: 01-16 ComfyUI UI workflow 저장본을 API prompt JSON으로 착각해 보내는 경우를 감지해 로컬 실패 메시지를 표시하도록 보정.
